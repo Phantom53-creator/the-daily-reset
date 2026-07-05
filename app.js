@@ -225,6 +225,20 @@ const ResetApp = {
     if (this.state.isPaused) return;
 
     this.renderCurrentStep();
+
+    const step = this.state.currentBreak?.steps?.[this.state.currentStepIndex];
+    const total = step?.duration || 0;
+    const remaining = this.state.secondsRemaining;
+    const midpoint = Math.floor(total / 2);
+
+    // Midpoint "keep going" reminder — only once per step, only if narration is on
+    if (remaining === midpoint && total >= 25) {
+      const narrationOn = document.getElementById('narration-toggle')?.checked;
+      if (narrationOn !== false) {
+        window.VoiceSystem?.speak('Keep going.');
+      }
+    }
+
     if (this.state.secondsRemaining <= 0) {
       this.nextStep();
       return;

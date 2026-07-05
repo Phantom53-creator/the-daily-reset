@@ -13,11 +13,11 @@ const LEARNING_EPISODES = [
     takeaway: 'Schedule lighter decisions after lunch and use a physical reset before high-stakes afternoon work.',
     transcript: `There is a moment in most working days when the mind starts to feel slightly underwater. For many people it arrives somewhere between two and four in the afternoon. The mistake is to treat it as a character flaw. It is not laziness. It is not lack of discipline. It is a predictable collision between circadian rhythm, glucose regulation, digestion, and decision load.
 
-Your body is not built to deliver identical mental output for ten straight hours. Alertness rises and falls. After lunch, blood flow shifts toward digestion. Core body temperature changes. The brain, which has been making decisions all morning, begins to protect itself by demanding less complexity.
+Your body is not built to deliver identical mental output for ten straight hours. Alertness rises and falls. After lunch, blood flow shifts toward digestion. Core body temperature changes. The brain, which has been making decisions all morning, begins to protect itself by demanding less complexity. This is not a flaw in you. It is the architecture of being human.
 
-The practical answer is not another coffee by default. It is a reset. Stand up. Move. Breathe. Let the visual system look away from the screen. Then return with one clear afternoon priority rather than ten competing ones.
+The practical answer is not another coffee by default. It is a reset. Stand up. Move. Breathe. Let the visual system look away from the screen. Then return with one clear afternoon priority rather than ten competing ones. The people who push through without a reset often spend the next two hours in a fog, making slower decisions and more errors. A three-minute intervention can change the slope of the entire afternoon.
 
-The takeaway: if your energy drops at three, do not shame it. Design around it. Use that dip as a signal to reset the body before you ask the mind to perform again.`
+The takeaway: if your energy drops at three, do not shame it. Design around it. Use that dip as a signal to reset the body before you ask the mind to perform again. The executives who treat the crash as data instead of failure are the ones who keep their afternoons sharp.`
   },
   {
     id: 'lunch-002',

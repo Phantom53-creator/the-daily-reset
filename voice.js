@@ -8,7 +8,7 @@ const VoiceSystem = {
   selectedVoice: null,
   voiceGender: 'female', // default
   enabled: true,
-  rate: 0.9,
+  rate: 1.1,
   pitch: 1.0,
   volume: 1.0,
   currentUtterance: null,
@@ -16,8 +16,10 @@ const VoiceSystem = {
   onEndCallback: null,
 
   init() {
-    if (!('speechSynthesis' in window)) {
-      console.warn('Speech synthesis not supported in this browser');
+    if (typeof window === 'undefined' || !('speechSynthesis' in window)) {
+      if (typeof window !== 'undefined') {
+        console.warn('Speech synthesis not supported in this browser');
+      }
       this.enabled = false;
       return;
     }
@@ -52,28 +54,63 @@ const VoiceSystem = {
       return;
     }
 
-    // Try to find a voice matching the selected gender
     // Browser voice names don't have explicit gender, but we can heuristically match
     const femaleHints = ['female', 'samantha', 'victoria', 'karen', 'moira', 'tessa', 'fiona', 'veena', 'amelie', 'anna', 'ellen', 'zira', 'hazel', 'serena', 'catherine', 'allison', 'ava', 'susan', 'google uk english female', 'google us english'];
     const maleHints = ['male', 'daniel', 'alex', 'fred', 'tom', 'oliver', 'arthur', 'gordon', 'david', 'mark', 'google uk english male', 'rishi', 'aaron', 'nicky'];
 
+    // Highest-quality named voices per gender, in preference order.
+    // On modern macOS these are the natural-sounding "Enhanced"/"Premium" voices.
+    const femalePreferred = ['samantha', 'ava', 'allison', 'susan', 'zoe', 'serena', 'karen', 'moira', 'tessa'];
+    const malePreferred = ['alex', 'tom', 'daniel', 'aaron', 'fred', 'oliver', 'arthur'];
+
+    const preferred = this.voiceGender === 'female' ? femalePreferred : malePreferred;
     const hints = this.voiceGender === 'female' ? femaleHints : maleHints;
     const oppositeHints = this.voiceGender === 'female' ? maleHints : femaleHints;
 
-    // First try exact hint match
-    let match = enVoices.find(v => hints.some(h => v.name.toLowerCase().includes(h)));
-    if (!match) {
-      // Try Google voices (usually high quality)
-      match = enVoices.find(v => v.name.toLowerCase().includes('google'));
+    const nameHas = (v, s) => v.name.toLowerCase().includes(s);
+    const isHighQuality = v => {
+      const n = v.name.toLowerCase();
+      return n.includes('enhanced') || n.includes('premium') || n.includes('natural') || n.includes('neural');
+    };
+
+    let match = null;
+
+    // 1. Preferred named voice AND high-quality variant (e.g. "Samantha (Enhanced)")
+    for (const name of preferred) {
+      match = enVoices.find(v => nameHas(v, name) && isHighQuality(v));
+      if (match) break;
     }
+    // 2. Preferred named voice, any variant
     if (!match) {
-      // Try "Natural" or "Enhanced" voices
-      match = enVoices.find(v => v.name.toLowerCase().includes('natural') || v.name.toLowerCase().includes('enhanced'));
+      for (const name of preferred) {
+        match = enVoices.find(v => nameHas(v, name));
+        if (match) break;
+      }
     }
+    // 3. Any high-quality voice matching the requested gender
     if (!match) {
-      // Avoid voices that match the opposite gender hints
-      const filtered = enVoices.filter(v => !oppositeHints.some(h => v.name.toLowerCase().includes(h)));
+      match = enVoices.find(v => isHighQuality(v) && hints.some(h => nameHas(v, h)));
+    }
+    // 4. Any voice matching the requested gender hints
+    if (!match) {
+      match = enVoices.find(v => hints.some(h => nameHas(v, h)));
+    }
+    // 5. Google voices (usually high quality)
+    if (!match) {
+      match = enVoices.find(v => nameHas(v, 'google'));
+    }
+    // 6. Any high-quality voice, avoiding the opposite gender
+    if (!match) {
+      match = enVoices.find(v => isHighQuality(v) && !oppositeHints.some(h => nameHas(v, h)));
+    }
+    // 7. Fall back to any voice not matching the opposite gender
+    if (!match) {
+      const filtered = enVoices.filter(v => !oppositeHints.some(h => nameHas(v, h)));
       match = filtered[0] || enVoices[0];
+    }
+    // 8. Non-Mac fallback: any remaining English voice (Windows/Linux names differ)
+    if (!match) {
+      match = enVoices[0];
     }
 
     this.selectedVoice = match;
