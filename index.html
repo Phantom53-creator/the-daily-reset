@@ -22,7 +22,7 @@
       <a href="#about">About</a>
       <a href="#pricing">Pricing</a>
     </div>
-    <a href="#app" class="nav-cta">Try Free</a>
+    <a href="#" class="nav-cta js-start-trial" id="nav-cta">Try Free</a>
   </div>
 </nav>
 
@@ -33,7 +33,7 @@
     <h1>The meeting you need most today is three minutes with yourself.</h1>
     <p class="hero-sub">The Daily Reset guides you through research-backed microbreaks at your desk — eyes, shoulders, posture, breathing. No meditation. No yoga. No motivational speeches. Just a timer, a sequence, and your body remembering how to feel human again between calls.</p>
     <div class="hero-actions">
-      <a href="#app" class="btn-primary">Try Free for 5 Days</a>
+      <a href="#" class="btn-primary js-start-trial">Try Free for 5 Days</a>
       <a href="#science" class="btn-secondary">See the Evidence</a>
     </div>
     <p class="hero-note">No download. No credit card. Just your name and email.</p>
@@ -190,149 +190,30 @@
   </div>
 </section>
 
-<!-- ============ APP ============ -->
-<section id="app" class="app-section">
+<!-- ============ HOW IT WORKS ============ -->
+<section id="how" class="app-section">
   <div class="container">
-    <h2>Try it now</h2>
-    <p class="section-sub">Five days, full access. No credit card — just your name and email.</p>
-
-    <div class="app-shell" id="app-shell">
-      <!-- Break selection -->
-      <div class="break-select" id="break-select">
-        <h3>Choose a break</h3>
-        <div class="break-options">
-          <button class="break-btn" data-break="eyes">
-            <span class="break-btn-name">Eyes</span>
-            <span class="break-btn-time">3 min</span>
-          </button>
-          <button class="break-btn" data-break="breathe">
-            <span class="break-btn-name">Breathe</span>
-            <span class="break-btn-time">4 min</span>
-          </button>
-          <button class="break-btn" data-break="shoulders">
-            <span class="break-btn-name">Shoulders</span>
-            <span class="break-btn-time">4 min</span>
-          </button>
-          <button class="break-btn" data-break="stand">
-            <span class="break-btn-name">Stand</span>
-            <span class="break-btn-time">2 min</span>
-          </button>
-          <button class="break-btn" data-break="posture">
-            <span class="break-btn-name">Posture</span>
-            <span class="break-btn-time">3 min</span>
-          </button>
-        </div>
-
-        <div class="schedule-section">
-          <h3>Your daily schedule</h3>
-          <p class="schedule-note">Three breaks, one-click set. Shift or skip anytime. No streaks, no guilt.</p>
-          <div class="schedule-times">
-            <div class="schedule-slot">
-              <input type="time" id="slot-1" value="10:00">
-              <label>Morning</label>
-            </div>
-            <div class="schedule-slot">
-              <input type="time" id="slot-2" value="13:00">
-              <label>Midday</label>
-            </div>
-            <div class="schedule-slot">
-              <input type="time" id="slot-3" value="15:30">
-              <label>Afternoon</label>
-            </div>
-          </div>
-        </div>
-
-        <div class="learning-toggle-section">
-          <h3>Lunch Break Learning</h3>
-          <div class="toggle-row">
-            <label class="toggle">
-              <input type="checkbox" id="learning-toggle">
-              <span class="toggle-slider"></span>
-            </label>
-            <span class="toggle-label">Enable daily learning episodes</span>
-          </div>
-          <div class="learning-config" id="learning-config" style="display:none;">
-            <div class="learning-time">
-              <label>Lunch time:</label>
-              <input type="time" id="learning-time-input" value="12:30">
-            </div>
-            <p class="learning-config-note">3–5 minute audio episodes. Pause anytime, resume where you left off. Multiple topics available at launch.</p>
-            <div class="learning-voice-section">
-              <p class="voice-selector-label">Narrator voice:</p>
-              <div class="voice-options">
-                <button class="voice-btn" data-gender="female">Female</button>
-                <button class="voice-btn" data-gender="male">Male</button>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="audio-toggle-section">
-          <h3>Audio narration</h3>
-          <div class="toggle-row">
-            <label class="toggle">
-              <input type="checkbox" id="narration-toggle">
-              <span class="toggle-slider"></span>
-            </label>
-            <span class="toggle-label">Guided narration during breaks</span>
-          </div>
-          <div class="voice-selector" id="voice-selector" style="display:none;">
-            <p class="voice-selector-label">Narrator voice:</p>
-            <div class="voice-options">
-              <button class="voice-btn" data-gender="female">Female</button>
-              <button class="voice-btn" data-gender="male">Male</button>
-            </div>
-          </div>
-        </div>
+    <h2>How it works</h2>
+    <p class="section-sub">Sign up in ten seconds, then the app opens in its own clean workspace — no scrolling, no clutter.</p>
+    <div class="how-grid">
+      <div class="how-step">
+        <span class="how-num">1</span>
+        <h3>Start your trial</h3>
+        <p>Name and email — that's it. No credit card. You get five days of full access to everything.</p>
       </div>
-
-      <!-- Break player -->
-      <div class="break-player" id="break-player" style="display:none;">
-        <button class="back-btn" id="back-btn">← Back to breaks</button>
-        <div class="player-header">
-          <h2 id="player-title"></h2>
-          <p id="player-subtitle"></p>
-        </div>
-        <div class="timer-display" id="timer-display">
-          <div class="timer-ring">
-            <div class="timer-number" id="timer-number">--</div>
-            <div class="timer-label" id="timer-label">Ready</div>
-          </div>
-        </div>
-        <div class="timer-instruction" id="timer-instruction"></div>
-        <div class="player-controls">
-          <button class="btn-primary" id="start-btn">Start</button>
-          <button class="btn-secondary" id="pause-btn" style="display:none;">Pause</button>
-          <button class="btn-secondary" id="skip-btn" style="display:none;">Skip step</button>
-        </div>
-        <div class="player-voice-info" id="player-voice-info" style="display:none;">
-          <span class="voice-badge">🔊 Narration on</span>
-        </div>
-        <div class="player-quote" id="player-quote" style="display:none;">
-          <p id="quote-text"></p>
-        </div>
+      <div class="how-step">
+        <span class="how-num">2</span>
+        <h3>Open your dashboard</h3>
+        <p>A dedicated app space with your five breaks, daily schedule, morning quote, and Lunch Break Learning.</p>
       </div>
-
-      <!-- Learning player -->
-      <div class="learning-player" id="learning-player" style="display:none;">
-        <button class="back-btn" id="learning-back-btn">← Back</button>
-        <div class="player-header">
-          <h2>Lunch Break Learning</h2>
-          <p id="learning-episode-title"></p>
-        </div>
-        <div class="learning-progress">
-          <div class="progress-bar">
-            <div class="progress-fill" id="learning-progress-fill"></div>
-          </div>
-          <span class="progress-time" id="learning-progress-time">0:00</span>
-        </div>
-        <div class="player-controls">
-          <button class="btn-primary" id="learning-play-btn">Play</button>
-          <button class="btn-secondary" id="learning-pause-btn" style="display:none;">Pause</button>
-          <button class="btn-secondary" id="learning-next-btn">Done for today</button>
-        </div>
-        <p class="learning-note" id="learning-note">One new episode per day — that's the design. Come back tomorrow for the next one.</p>
+      <div class="how-step">
+        <span class="how-num">3</span>
+        <h3>Take a break</h3>
+        <p>Pick a break, press start, and follow the guided timer with optional voice narration. Back in three minutes.</p>
       </div>
+    </div>
+    <div class="how-cta">
+      <a href="#" class="btn-primary js-start-trial">Start Your Free Trial</a>
     </div>
   </div>
 </section>
@@ -353,7 +234,7 @@
           <li>No credit card required</li>
           <li>Name and email only</li>
         </ul>
-        <a href="#app" class="btn-secondary">Start Your Free Trial</a>
+        <a href="#" class="btn-secondary js-start-trial">Start Your Free Trial</a>
       </div>
       <div class="pricing-card paid-card">
         <div class="pricing-badge">Full Access</div>
@@ -432,7 +313,7 @@
         <a href="#breaks">Breaks</a>
         <a href="#science">Science</a>
         <a href="#pricing">Pricing</a>
-        <a href="#app">Try Free</a>
+        <a href="#" class="js-start-trial">Try Free</a>
       </div>
     </div>
     <div class="footer-bottom">
@@ -447,86 +328,86 @@
   <div class="modal">
     <button class="modal-close" id="signup-close">×</button>
     <h3>Start Your 5-Day Free Trial</h3>
-    <p class="modal-desc">Full access to everything. No credit card. Just your name and email.</p>
+    <p class="modal-desc">Full access to everything. No credit card. Just your name and email — then the app opens in its own workspace.</p>
     <form id="signup-form">
       <div class="form-field">
         <label for="signup-name">Full name</label>
-        <input type="text" id="signup-name" required placeholder="Jane Smith">
+        <input type="text" id="signup-name" required placeholder="Jane Smith" autocomplete="name">
       </div>
       <div class="form-field">
         <label for="signup-email">Email</label>
-        <input type="email" id="signup-email" required placeholder="jane@company.com">
+        <input type="email" id="signup-email" required placeholder="jane@company.com" autocomplete="email">
       </div>
-      <button type="submit" class="btn-primary">Start Free Trial</button>
+      <button type="submit" class="btn-primary">Start Free Trial &amp; Open the App</button>
       <button type="button" class="btn-secondary" id="signup-cancel-btn">Maybe later</button>
     </form>
+    <p class="modal-code-link"><a href="app.html">I have an access code</a></p>
   </div>
 </div>
 
-<!-- ============ TOPIC PICKER (Lunch Break Learning) ============ -->
-<div class="topic-picker" id="topic-picker" style="display:none;">
-  <div class="topic-picker-inner">
-    <h3>Choose Your Learning Topics</h3>
-    <p class="topic-picker-sub">Pick a topic group. Each day you'll get one randomly shuffled episode from this group. You can change your group anytime — it starts a fresh shuffle.</p>
-    <div class="topic-groups">
-      <button class="topic-group-btn" data-group="philosophy">
-        <span class="topic-group-name">Philosophy & Wisdom</span>
-        <span class="topic-group-desc">Stoic thinking, Roman decision-making, historical lessons</span>
-      </button>
-      <button class="topic-group-btn" data-group="motivation">
-        <span class="topic-group-name">Motivation & Obstacles</span>
-        <span class="topic-group-desc">Persistence, reframing obstacles, momentum from leaders in their fields</span>
-      </button>
-      <button class="topic-group-btn" data-group="science">
-        <span class="topic-group-name">Science & Body</span>
-        <span class="topic-group-desc">The 3 PM crash, neuroscience of breathing, recovery science</span>
-      </button>
-      <button class="topic-group-btn" data-group="leadership">
-        <span class="topic-group-name">Leadership & Strategy</span>
-        <span class="topic-group-desc">Chess grandmasters, decision fatigue, team dynamics</span>
-      </button>
-      <button class="topic-group-btn" data-group="history">
-        <span class="topic-group-name">On This Day — Great Events in History</span>
-        <span class="topic-group-desc">Pivotal moments that changed the world, tied to today's date</span>
-      </button>
-      <button class="topic-group-btn" data-group="all">
-        <span class="topic-group-name">Mix It Up</span>
-        <span class="topic-group-desc">Everything — a random shuffle across all topics</span>
-      </button>
-    </div>
-    <button class="btn-secondary" id="change-topic-btn" style="display:none;">Choose a different topic group</button>
-  </div>
-</div>
-
-<!-- ============ TRIAL EXPIRED BAR ============ -->
-<div class="trial-expired-bar" id="trial-expired-bar" style="display:none;">
-  <p>Your 5-day free trial has ended. <button class="btn-primary" id="upgrade-btn-expired">Continue with Full Access</button></p>
-</div>
-
-<!-- ============ STRIPE CHECKOUT MODAL (for paid upgrade after trial) ============ -->
+<!-- ============ UPGRADE MODAL (paid plans) ============ -->
 <div class="modal-overlay" id="stripe-modal" style="display:none;">
   <div class="modal">
     <button class="modal-close" id="modal-close">×</button>
-    <h3>Upgrade to Full Access</h3>
+    <h3>Get Full Access</h3>
     <p class="modal-price">$8/month or $79/year</p>
-    <p class="modal-desc">Unlock all 5 break types, audio narration, Lunch Break Learning, and weekly rotation.</p>
-    <div class="modal-stripe" id="stripe-checkout-container">
-      <p class="modal-pending">Payment system ready (Stripe). Activation requires creating your Payment Links — see DEPLOYMENT_README.md for 3-click setup.</p>
-      <p class="modal-pending-sub">Once Stripe Payment Links are created and pasted into stripe.js, these buttons go live:</p>
-      <button class="btn-primary" id="stripe-pay-btn">Upgrade — $8/month</button>
-      <button class="btn-secondary" id="stripe-pay-annual">Upgrade — $79/year</button>
-    </div>
+    <p class="modal-desc">All 5 breaks, audio narration, and a new Lunch Break Learning episode every day.</p>
+    <button class="btn-primary" id="stripe-pay-btn">Full Access — $8/month</button>
+    <button class="btn-secondary" id="stripe-pay-annual">Full Access — $79/year</button>
     <p class="modal-cancel-note">Cancel anytime. No lock-in.</p>
   </div>
 </div>
 
 <!-- ============ SCRIPTS ============ -->
-<script src="breaks.js"></script>
-<script src="quotes.js"></script>
-<script src="learning.js"></script>
-<script src="stripe.js"></script>
-<script src="voice.js"></script>
-<script src="app.js"></script>
+<script src="access.js"></script>
+<script>
+// Landing page logic — signup opens the app in its own workspace (app.html)
+document.addEventListener('DOMContentLoaded', () => {
+  const hasAccess = window.hasFullAccess() || window.getAccessLevel() !== 'none';
+
+  // Returning users: every trial CTA becomes "Open the App"
+  if (hasAccess) {
+    document.querySelectorAll('.js-start-trial').forEach(el => {
+      el.textContent = 'Open the App';
+      el.setAttribute('href', 'app.html');
+    });
+  } else {
+    document.querySelectorAll('.js-start-trial').forEach(el => {
+      el.addEventListener('click', (e) => {
+        e.preventDefault();
+        document.getElementById('signup-modal').style.display = 'flex';
+        document.getElementById('signup-name')?.focus();
+      });
+    });
+  }
+
+  // Signup → start trial → straight into the app
+  document.getElementById('signup-form')?.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const name = document.getElementById('signup-name').value.trim();
+    const email = document.getElementById('signup-email').value.trim();
+    if (!name || !email) return;
+    window.startTrial(name, email);
+    window.location.href = 'app.html';
+  });
+  document.getElementById('signup-close')?.addEventListener('click', () => {
+    document.getElementById('signup-modal').style.display = 'none';
+  });
+  document.getElementById('signup-cancel-btn')?.addEventListener('click', () => {
+    document.getElementById('signup-modal').style.display = 'none';
+  });
+
+  // Paid plan buttons
+  const openUpgrade = (e) => { e.preventDefault(); document.getElementById('stripe-modal').style.display = 'flex'; };
+  document.getElementById('upgrade-btn')?.addEventListener('click', openUpgrade);
+  document.getElementById('annual-link')?.addEventListener('click', openUpgrade);
+  document.getElementById('modal-close')?.addEventListener('click', () => {
+    document.getElementById('stripe-modal').style.display = 'none';
+  });
+  document.getElementById('stripe-pay-btn')?.addEventListener('click', () => window.goToStripePayment('monthly'));
+  document.getElementById('stripe-pay-annual')?.addEventListener('click', () => window.goToStripePayment('annual'));
+});
+</script>
 
 </body>
 </html>

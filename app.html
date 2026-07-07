@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>The Daily Reset — Your Breaks</title>
+  <meta name="description" content="Your daily reset space. Research-backed 3–5 minute desk breaks for executives.">
+  <meta name="theme-color" content="#fffdf8">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="app.css">
+</head>
+<body>
+
+<!-- ============ APP HEADER ============ -->
+<header class="app-header">
+  <div class="app-header-inner">
+    <a href="app.html" class="app-logo">The Daily Reset</a>
+    <div class="app-header-right">
+      <span class="access-pill" id="access-pill" style="display:none;"></span>
+      <nav class="app-nav">
+        <button class="app-nav-btn active" id="nav-dashboard" data-view="dashboard" title="Dashboard">Home</button>
+        <button class="app-nav-btn" id="nav-settings" data-view="settings" title="Settings">Settings</button>
+      </nav>
+    </div>
+  </div>
+</header>
+
+<main class="app-main">
+
+  <!-- ============ WELCOME / SIGN-UP (no access yet) ============ -->
+  <section class="view" id="view-welcome" style="display:none;">
+    <div class="welcome-card">
+      <p class="welcome-eyebrow">Welcome to</p>
+      <h1 class="welcome-title">The Daily Reset</h1>
+      <p class="welcome-sub">Research-backed 3–5 minute desk breaks for executives. Start your 5-day free trial — full access, no credit card.</p>
+      <form id="welcome-signup-form" class="welcome-form">
+        <div class="form-field">
+          <label for="welcome-name">Full name</label>
+          <input type="text" id="welcome-name" required placeholder="Jane Smith" autocomplete="name">
+        </div>
+        <div class="form-field">
+          <label for="welcome-email">Email</label>
+          <input type="email" id="welcome-email" required placeholder="jane@company.com" autocomplete="email">
+        </div>
+        <button type="submit" class="btn-primary btn-block">Start My Free Trial</button>
+      </form>
+      <div class="welcome-divider"><span>or</span></div>
+      <button class="link-btn" id="welcome-code-link">I have an access code</button>
+      <form id="welcome-code-form" class="welcome-form" style="display:none;">
+        <div class="form-field">
+          <label for="welcome-code">Access code</label>
+          <input type="text" id="welcome-code" placeholder="e.g. RESET-REVIEW-01" autocomplete="off">
+        </div>
+        <p class="form-error" id="welcome-code-error" style="display:none;"></p>
+        <button type="submit" class="btn-secondary btn-block">Activate Access</button>
+      </form>
+      <p class="welcome-note"><a href="index.html">← Back to overview</a></p>
+    </div>
+  </section>
+
+  <!-- ============ TRIAL EXPIRED / UPGRADE ============ -->
+  <section class="view" id="view-paywall" style="display:none;">
+    <div class="welcome-card">
+      <p class="welcome-eyebrow">Your trial has ended</p>
+      <h1 class="welcome-title">Keep your resets going.</h1>
+      <p class="welcome-sub">You've seen how the breaks work. Full access is $8/month or $79/year — cancel anytime, no lock-in.</p>
+      <div class="paywall-actions">
+        <button class="btn-primary btn-block" id="paywall-monthly">Continue — $8/month</button>
+        <button class="btn-secondary btn-block" id="paywall-annual">Continue — $79/year (save ~18%)</button>
+      </div>
+      <div class="welcome-divider"><span>or</span></div>
+      <button class="link-btn" id="paywall-code-link">I have an access code</button>
+      <form id="paywall-code-form" class="welcome-form" style="display:none;">
+        <div class="form-field">
+          <label for="paywall-code">Access code</label>
+          <input type="text" id="paywall-code" placeholder="e.g. RESET-REVIEW-01" autocomplete="off">
+        </div>
+        <p class="form-error" id="paywall-code-error" style="display:none;"></p>
+        <button type="submit" class="btn-secondary btn-block">Activate Access</button>
+      </form>
+    </div>
+  </section>
+
+  <!-- ============ DASHBOARD ============ -->
+  <section class="view" id="view-dashboard" style="display:none;">
+    <div class="dash-head">
+      <div>
+        <h1 class="dash-greeting" id="dash-greeting">Good morning</h1>
+        <p class="dash-date" id="dash-date"></p>
+      </div>
+    </div>
+
+    <div class="quote-card" id="quote-card" style="display:none;">
+      <span class="quote-mark">“</span>
+      <p class="quote-eyebrow">Today's anchor</p>
+      <p class="quote-text" id="dash-quote-text"></p>
+      <p class="quote-author" id="dash-quote-author"></p>
+    </div>
+
+    <h2 class="dash-section-title">Your breaks</h2>
+    <p class="dash-section-sub">Pick one. Three to five minutes. Back before anyone notices you were gone.</p>
+    <div class="dash-break-grid" id="dash-break-grid"><!-- rendered by app.js --></div>
+
+    <div class="dash-row">
+      <div class="dash-card learning-card" id="dash-learning-card">
+        <div class="dash-card-head">
+          <h3>Lunch Break Learning</h3>
+          <span class="tag" id="learning-status-tag">Off</span>
+        </div>
+        <p class="dash-card-body" id="learning-teaser">One 3–5 minute audio episode a day — one idea, one story, one takeaway. Turn it on in Settings.</p>
+        <div class="dash-card-actions">
+          <button class="btn-secondary btn-tinted" id="dash-learning-btn">Open today's episode</button>
+        </div>
+      </div>
+      <div class="dash-card schedule-card">
+        <div class="dash-card-head">
+          <h3>Today's schedule</h3>
+          <span class="tag tag-soft">3 breaks</span>
+        </div>
+        <ul class="schedule-list" id="dash-schedule-list"><!-- rendered by app.js --></ul>
+        <div class="dash-card-actions">
+          <button class="btn-secondary btn-tinted" id="dash-edit-schedule">Adjust times</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ BREAK PLAYER ============ -->
+  <section class="view" id="view-player" style="display:none;">
+    <button class="back-btn" id="player-back">← Dashboard</button>
+    <div class="player-shell">
+      <div class="player-head">
+        <h1 id="player-title"></h1>
+        <p id="player-subtitle"></p>
+      </div>
+
+      <div class="ring-wrap">
+        <svg class="ring" viewBox="0 0 220 220" aria-hidden="true">
+          <circle class="ring-track" cx="110" cy="110" r="96"></circle>
+          <circle class="ring-progress" id="ring-progress" cx="110" cy="110" r="96"></circle>
+        </svg>
+        <div class="ring-center">
+          <div class="ring-time" id="ring-time">--</div>
+          <div class="ring-label" id="ring-label">Ready</div>
+        </div>
+      </div>
+
+      <div class="step-dots" id="step-dots"><!-- rendered by app.js --></div>
+      <p class="player-instruction" id="player-instruction">Press Start when you're ready.</p>
+
+      <div class="player-controls">
+        <button class="btn-primary" id="player-start">Start</button>
+        <button class="btn-secondary" id="player-pause" style="display:none;">Pause</button>
+        <button class="btn-secondary" id="player-skip" style="display:none;">Skip step</button>
+      </div>
+
+      <p class="audio-source" id="player-audio-source" style="display:none;"></p>
+
+      <div class="player-quote" id="player-quote" style="display:none;">
+        <p id="player-quote-text"></p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ LEARNING PLAYER ============ -->
+  <section class="view" id="view-learning" style="display:none;">
+    <button class="back-btn" id="learning-back">← Dashboard</button>
+    <div class="player-shell">
+      <div class="player-head">
+        <p class="learning-kicker">Lunch Break Learning</p>
+        <h1 id="learning-title"></h1>
+        <p class="learning-meta"><span class="tag" id="learning-category"></span> <span id="learning-duration"></span></p>
+      </div>
+
+      <p class="learning-idea" id="learning-idea"></p>
+
+      <div class="learning-progress">
+        <div class="progress-bar"><div class="progress-fill" id="learning-progress-fill"></div></div>
+        <span class="progress-time" id="learning-progress-time">0:00</span>
+      </div>
+
+      <div class="player-controls">
+        <button class="btn-primary" id="learning-play">Play</button>
+        <button class="btn-secondary" id="learning-pause" style="display:none;">Pause</button>
+        <button class="btn-secondary" id="learning-done">Done for today</button>
+      </div>
+
+      <p class="audio-source" id="learning-audio-source" style="display:none;"></p>
+      <p class="learning-note" id="learning-note"></p>
+
+      <button class="link-btn" id="transcript-toggle">Show transcript</button>
+      <div class="transcript" id="learning-transcript" style="display:none;"></div>
+
+      <!-- Reviewer-only: browse and jump between episodes -->
+      <div class="reviewer-tools" id="learning-reviewer-tools" style="display:none;">
+        <p class="reviewer-tools-title">Reviewer tools</p>
+        <div class="reviewer-tools-row">
+          <select id="reviewer-episode-select"><!-- rendered by app.js --></select>
+          <button class="btn-secondary" id="reviewer-next-episode">Next episode →</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ SETTINGS ============ -->
+  <section class="view" id="view-settings" style="display:none;">
+    <button class="back-btn" id="settings-back">← Dashboard</button>
+    <h1 class="settings-title">Settings</h1>
+
+    <div class="settings-card">
+      <h3>Daily break schedule</h3>
+      <p class="settings-sub">Three breaks a day. Shift or skip anytime — no streaks, no guilt.</p>
+      <div class="schedule-times">
+        <div class="schedule-slot"><label for="slot-1">Morning</label><input type="time" id="slot-1" value="10:00"></div>
+        <div class="schedule-slot"><label for="slot-2">Midday</label><input type="time" id="slot-2" value="13:00"></div>
+        <div class="schedule-slot"><label for="slot-3">Afternoon</label><input type="time" id="slot-3" value="15:30"></div>
+      </div>
+      <div class="toggle-row reminder-row">
+        <label class="toggle"><input type="checkbox" id="reminder-toggle" checked><span class="toggle-slider"></span></label>
+        <span class="toggle-label">Alert me at each break time</span>
+      </div>
+      <p class="settings-note">Uses a desktop notification when your browser allows it; otherwise an alert appears inside the app.</p>
+    </div>
+
+    <div class="settings-card">
+      <h3>Audio narration</h3>
+      <p class="settings-sub">Guided voice during breaks. Pre-recorded studio audio plays where available; otherwise your device voice is used.</p>
+      <div class="toggle-row">
+        <label class="toggle"><input type="checkbox" id="narration-toggle" checked><span class="toggle-slider"></span></label>
+        <span class="toggle-label">Narration during breaks</span>
+      </div>
+      <div class="voice-options" id="voice-options">
+        <button class="voice-btn" data-gender="female">Female voice</button>
+        <button class="voice-btn" data-gender="male">Male voice</button>
+      </div>
+    </div>
+
+    <div class="settings-card">
+      <h3>Lunch Break Learning</h3>
+      <p class="settings-sub">One 3–5 minute audio episode a day, at the time you choose.</p>
+      <div class="toggle-row">
+        <label class="toggle"><input type="checkbox" id="learning-toggle"><span class="toggle-slider"></span></label>
+        <span class="toggle-label">Enable daily episodes</span>
+      </div>
+      <div class="learning-config" id="learning-config" style="display:none;">
+        <div class="schedule-slot"><label for="learning-time-input">Lunch time</label><input type="time" id="learning-time-input" value="12:30"></div>
+        <button class="btn-secondary" id="change-topic-btn">Change topic group</button>
+      </div>
+    </div>
+
+    <div class="settings-card">
+      <h3>Account</h3>
+      <ul class="account-list" id="account-list"><!-- rendered by app.js --></ul>
+      <div class="code-entry">
+        <label for="settings-code">Have an access code?</label>
+        <div class="code-entry-row">
+          <input type="text" id="settings-code" placeholder="e.g. RESET-REVIEW-01" autocomplete="off">
+          <button class="btn-secondary" id="settings-code-btn">Activate</button>
+        </div>
+        <p class="form-error" id="settings-code-error" style="display:none;"></p>
+        <p class="form-success" id="settings-code-success" style="display:none;"></p>
+      </div>
+    </div>
+
+    <div class="settings-card danger-card">
+      <h3>Reset app data</h3>
+      <p class="settings-sub">Clears your schedule, history, and preferences from this browser. Cannot be undone.</p>
+      <button class="btn-danger" id="reset-data-btn">Clear all my data</button>
+    </div>
+  </section>
+
+</main>
+
+<!-- ============ TOPIC PICKER MODAL ============ -->
+<div class="modal-overlay" id="topic-modal" style="display:none;">
+  <div class="modal modal-wide">
+    <button class="modal-close" id="topic-close">×</button>
+    <h3>Choose your learning topics</h3>
+    <p class="modal-desc">Pick a topic group. Each day you get one shuffled episode from it. Change anytime — it starts a fresh shuffle.</p>
+    <div class="topic-groups">
+      <button class="topic-group-btn" data-group="philosophy"><span class="topic-group-name">Philosophy &amp; Wisdom</span><span class="topic-group-desc">Stoic thinking, Roman decision-making, historical lessons</span></button>
+      <button class="topic-group-btn" data-group="motivation"><span class="topic-group-name">Motivation &amp; Obstacles</span><span class="topic-group-desc">Persistence, reframing obstacles, momentum</span></button>
+      <button class="topic-group-btn" data-group="science"><span class="topic-group-name">Science &amp; Body</span><span class="topic-group-desc">The 3 PM crash, neuroscience of breathing, recovery</span></button>
+      <button class="topic-group-btn" data-group="leadership"><span class="topic-group-name">Leadership &amp; Strategy</span><span class="topic-group-desc">Chess grandmasters, decision fatigue, team dynamics</span></button>
+      <button class="topic-group-btn" data-group="history"><span class="topic-group-name">On This Day</span><span class="topic-group-desc">Great events in history, tied to today's date</span></button>
+      <button class="topic-group-btn" data-group="all"><span class="topic-group-name">Mix It Up</span><span class="topic-group-desc">A random shuffle across all topics</span></button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ NOTICE MODAL (popout messages) ============ -->
+<div class="modal-overlay" id="notice-modal" style="display:none;">
+  <div class="modal">
+    <h3 id="notice-title"></h3>
+    <p class="modal-desc" id="notice-message"></p>
+    <button class="btn-primary btn-block" id="notice-ok">OK</button>
+  </div>
+</div>
+
+<!-- ============ UPGRADE MODAL ============ -->
+<div class="modal-overlay" id="upgrade-modal" style="display:none;">
+  <div class="modal">
+    <button class="modal-close" id="upgrade-close">×</button>
+    <h3>Upgrade to Full Access</h3>
+    <p class="modal-desc">All 5 breaks, audio narration, and a new learning episode every day.</p>
+    <button class="btn-primary btn-block" id="upgrade-monthly">Upgrade — $8/month</button>
+    <button class="btn-secondary btn-block" id="upgrade-annual">Upgrade — $79/year</button>
+    <p class="modal-cancel-note">Cancel anytime. No lock-in.</p>
+  </div>
+</div>
+
+<!-- ============ SCRIPTS ============ -->
+<script src="access.js"></script>
+<script src="breaks.js"></script>
+<script src="quotes.js"></script>
+<script src="learning.js"></script>
+<script src="voice.js"></script>
+<script src="audio-manifest.js"></script>
+<script src="audio.js"></script>
+<script src="app.js"></script>
+
+</body>
+</html>
