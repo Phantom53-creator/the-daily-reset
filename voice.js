@@ -8,12 +8,14 @@ const VoiceSystem = {
   selectedVoice: null,
   voiceGender: 'female', // default
   enabled: true,
-  rate: 1.1,
+  rate: 0.55, // general guidance — slow, deliberate, unhurried
+  countRate: 0.85, // ALL spoken numbers app-wide (holds, reps, breathing) — kept at the pace Shane approved
   pitch: 1.0,
   volume: 1.0,
   currentUtterance: null,
   isSpeaking: false,
   onEndCallback: null,
+  _speakTimer: null,
 
   init() {
     if (typeof window === 'undefined' || !('speechSynthesis' in window)) {
@@ -30,13 +32,11 @@ const VoiceSystem = {
       speechSynthesis.onvoiceschanged = () => this.loadVoices();
     }
 
-    // Restore preference from localStorage
+    // Restore preference from localStorage. Rate/pitch/volume are intentionally
+    // NOT restored — the calm code defaults always win so pacing stays consistent.
     const saved = JSON.parse(localStorage.getItem('reset_voice_settings') || '{}');
     if (saved.gender) this.voiceGender = saved.gender;
     if (saved.enabled !== undefined) this.enabled = saved.enabled;
-    if (saved.rate) this.rate = saved.rate;
-    if (saved.pitch) this.pitch = saved.pitch;
-    if (saved.volume) this.volume = saved.volume;
   },
 
   loadVoices() {
@@ -138,7 +138,19 @@ const VoiceSystem = {
     }));
   },
 
-  speak(text, onEnd) {
+  // Speak a one-off silent utterance to wake the speech engine, so the FIRST
+  // real word of a break is never clipped. Call once, on a user gesture.
+  warmUp() {
+    if (this.warmed || !('speechSynthesis' in window)) return;
+    this.warmed = true;
+    try {
+      const u = new SpeechSynthesisUtterance(' ');
+      u.volume = 0;
+      speechSynthesis.speak(u);
+    } catch (e) { /* ignore */ }
+  },
+
+  speak(text, onEnd, rate) {
     if (!this.enabled || !text) {
       if (onEnd) onEnd();
       return;
@@ -149,7 +161,7 @@ const VoiceSystem = {
 
     const utterance = new SpeechSynthesisUtterance(text);
     if (this.selectedVoice) utterance.voice = this.selectedVoice;
-    utterance.rate = this.rate;
+    utterance.rate = (typeof rate === 'number') ? rate : this.rate;
     utterance.pitch = this.pitch;
     utterance.volume = this.volume;
 
@@ -167,10 +179,21 @@ const VoiceSystem = {
 
     this.currentUtterance = utterance;
     this.onEndCallback = onEnd;
-    speechSynthesis.speak(utterance);
+
+    // Chrome/Safari drop the first word(s) when speak() is called in the same
+    // tick as cancel(). A short delay lets the engine flush so narration always
+    // starts cleanly from the very first word.
+    this._speakTimer = setTimeout(() => {
+      this._speakTimer = null;
+      speechSynthesis.speak(utterance);
+    }, 140);
   },
 
   stop() {
+    if (this._speakTimer) {
+      clearTimeout(this._speakTimer);
+      this._speakTimer = null;
+    }
     if ('speechSynthesis' in window) {
       speechSynthesis.cancel();
     }

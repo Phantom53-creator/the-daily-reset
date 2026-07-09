@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Concept B — Morning Air (visual mockup)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  /* CONCEPT B — Morning Air. Visual mockup only — nothing is wired up. */
+  :root{
+    --bg:#f6f7fb; --card:#ffffff; --line:#e7e9f2;
+    --ink:#20243a; --muted:#7a80a0;
+    --indigo:#5b6cff; --indigo-deep:#4353e8;
+    --sky:#e3f1ff; --sky-ink:#2f7bd0;
+    --peach:#ffece1; --peach-ink:#d0682f;
+    --mint:#e2f6ec; --mint-ink:#2f9b68;
+    --lav:#efe9ff; --lav-ink:#7a5cd6;
+    --sand:#fff3d6; --sand-ink:#b98a1d;
+  }
+  *{box-sizing:border-box} body{margin:0;background:var(--bg);color:var(--ink);font-family:Inter,system-ui,sans-serif;line-height:1.55}
+  h1,h2,h3,.sora{font-family:Sora,Inter,sans-serif}
+  .mock-banner{background:var(--indigo);color:#fff;text-align:center;font-weight:800;font-size:12px;letter-spacing:.12em;text-transform:uppercase;padding:8px}
+
+  .nav{display:flex;align-items:center;justify-content:space-between;max-width:1020px;margin:0 auto;padding:20px 24px}
+  .logo{font-family:Sora;font-weight:800;font-size:18px;letter-spacing:-.02em}
+  .logo i{display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--indigo);margin-right:7px}
+  .navr{display:flex;gap:8px;align-items:center}
+  .tab{font-size:13.5px;font-weight:700;color:var(--muted);padding:9px 16px;border-radius:999px}
+  .tab.on{background:#fff;color:var(--ink);box-shadow:0 3px 12px rgba(32,36,58,.08)}
+  .rev{font-size:11px;font-weight:800;letter-spacing:.07em;background:var(--ink);color:#ffd166;padding:7px 13px;border-radius:999px}
+
+  .wrap{max-width:1020px;margin:0 auto;padding:10px 24px 60px}
+
+  /* Hero */
+  .hero{display:flex;align-items:center;gap:30px;background:linear-gradient(120deg,#eef0ff 0%,#fdfdff 55%,#e9f4ff 100%);border:1px solid var(--line);border-radius:28px;padding:36px 40px;margin-bottom:28px;box-shadow:0 18px 50px rgba(91,108,255,.10)}
+  .hero h1{font-size:34px;font-weight:800;letter-spacing:-.02em;margin:0 0 6px}
+  .hero .sub{color:var(--muted);font-size:14.5px;margin:0 0 22px}
+  .next{display:flex;align-items:center;gap:14px;background:#fff;border:1px solid var(--line);border-radius:16px;padding:14px 18px;margin-bottom:20px;max-width:430px}
+  .next .dot{width:42px;height:42px;border-radius:12px;background:var(--lav);display:flex;align-items:center;justify-content:center}
+  .next .dot svg{width:20px;height:20px;stroke:var(--lav-ink)}
+  .next .a{font-weight:700;font-size:14.5px}
+  .next .b{font-size:12.5px;color:var(--muted)}
+  .cta{background:var(--indigo);color:#fff;border:0;font-weight:800;font-family:Sora;font-size:15px;padding:14px 30px;border-radius:999px;box-shadow:0 10px 24px rgba(91,108,255,.35)}
+  .ghost{background:transparent;border:0;color:var(--indigo-deep);font-weight:700;font-size:14px;margin-left:14px}
+  .hero .ringside{margin-left:auto;position:relative;width:170px;height:170px;flex-shrink:0}
+  .hero .ringside .c{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+  .hero .ringside .t{font-family:Sora;font-weight:800;font-size:26px}
+  .hero .ringside .l{font-size:10.5px;color:var(--muted);letter-spacing:.08em}
+
+  .sec{font-family:Sora;font-size:17px;font-weight:800;letter-spacing:-.01em;margin:0 0 4px}
+  .secsub{color:var(--muted);font-size:13.5px;margin:0 0 16px}
+
+  /* Break cards */
+  .breaks{display:grid;grid-template-columns:repeat(5,1fr);gap:14px;margin-bottom:30px}
+  .bk{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:18px 16px;box-shadow:0 4px 16px rgba(32,36,58,.05)}
+  .bk .tile{width:44px;height:44px;border-radius:14px;display:flex;align-items:center;justify-content:center;margin-bottom:12px}
+  .bk .tile svg{width:22px;height:22px}
+  .bk h3{font-size:15px;margin:0 0 3px}
+  .bk p{font-size:12px;color:var(--muted);margin:0 0 10px}
+  .bk .m{font-size:11px;font-weight:800}
+  .t-sky{background:var(--sky)} .t-sky svg{stroke:var(--sky-ink)} .m-sky{color:var(--sky-ink)}
+  .t-peach{background:var(--peach)} .t-peach svg{stroke:var(--peach-ink)} .m-peach{color:var(--peach-ink)}
+  .t-mint{background:var(--mint)} .t-mint svg{stroke:var(--mint-ink)} .m-mint{color:var(--mint-ink)}
+  .t-lav{background:var(--lav)} .t-lav svg{stroke:var(--lav-ink)} .m-lav{color:var(--lav-ink)}
+  .t-sand{background:var(--sand)} .t-sand svg{stroke:var(--sand-ink)} .m-sand{color:var(--sand-ink)}
+  .donechip{float:right;font-size:10px;font-weight:800;background:var(--mint);color:var(--mint-ink);padding:3px 8px;border-radius:999px}
+
+  /* Two-column: timeline + learning */
+  .cols{display:grid;grid-template-columns:1fr 1.25fr;gap:16px;margin-bottom:34px}
+  .panel{background:var(--card);border:1px solid var(--line);border-radius:22px;padding:24px;box-shadow:0 4px 16px rgba(32,36,58,.05)}
+  .tl{list-style:none;margin:14px 0 0;padding:0;position:relative}
+  .tl::before{content:"";position:absolute;left:7px;top:6px;bottom:6px;width:2px;background:var(--line)}
+  .tl li{position:relative;padding:0 0 20px 30px}
+  .tl li:last-child{padding-bottom:0}
+  .tl .nd{position:absolute;left:0;top:3px;width:16px;height:16px;border-radius:50%;background:#fff;border:2.5px solid var(--line)}
+  .tl .done .nd{background:var(--mint-ink);border-color:var(--mint-ink)}
+  .tl .now .nd{border-color:var(--indigo);box-shadow:0 0 0 4px rgba(91,108,255,.18)}
+  .tl .tt{font-weight:700;font-size:14px}
+  .tl .now .tt{color:var(--indigo-deep)}
+  .tl .ts{font-size:12px;color:var(--muted)}
+  .tl .done .tt{color:var(--muted);text-decoration:line-through}
+
+  .epi{display:flex;gap:18px;align-items:center;margin-top:14px}
+  .art{width:96px;height:96px;border-radius:18px;background:linear-gradient(135deg,var(--indigo),#8a5cd6);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+  .art svg{width:30px;height:30px;stroke:#fff;fill:#fff}
+  .epi h4{margin:0 0 4px;font-size:16px}
+  .epi p{margin:0 0 12px;font-size:12.5px;color:var(--muted)}
+  .play{background:var(--ink);color:#fff;border:0;font-weight:700;font-size:13px;padding:10px 20px;border-radius:999px}
+  .bar{height:6px;border-radius:99px;background:var(--line);margin-top:14px;overflow:hidden}
+  .bar i{display:block;height:100%;width:34%;background:var(--indigo);border-radius:99px}
+
+  /* Player */
+  .player{background:var(--card);border:1px solid var(--line);border-radius:26px;padding:38px;text-align:center;max-width:520px;margin:0 auto;box-shadow:0 14px 44px rgba(32,36,58,.09)}
+  .player h3{font-size:24px;margin:0 0 4px}
+  .player .ps{color:var(--muted);font-size:13px;margin:0 0 22px}
+  .pr{position:relative;width:200px;height:200px;margin:0 auto 14px}
+  .pr .c{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+  .pr .t{font-family:Sora;font-weight:800;font-size:40px;letter-spacing:-.03em}
+  .pr .l{font-size:11px;color:var(--muted);letter-spacing:.06em}
+  .pd{display:flex;justify-content:center;gap:7px;margin-bottom:14px}
+  .pd i{width:8px;height:8px;border-radius:99px;background:var(--line)}
+  .pd i.on{background:var(--indigo);transform:scale(1.25)}
+  .pd i.past{background:#b9c1ff}
+  .player .inst{font-size:16px;font-weight:600;margin:0 0 20px}
+  .pb{display:flex;justify-content:center;gap:10px}
+  .pb .cta{padding:12px 26px;font-size:14px}
+  .pb .alt{background:#fff;border:1px solid var(--line);color:var(--ink);font-weight:700;font-size:14px;padding:12px 22px;border-radius:999px}
+</style>
+</head>
+<body>
+<div class="mock-banner">Concept B · “Morning Air” · visual mockup only — buttons are not functional</div>
+
+<nav class="nav">
+  <span class="logo"><i></i>The Daily Reset</span>
+  <div class="navr">
+    <span class="tab on">Today</span><span class="tab">Learning</span><span class="tab">Settings</span>
+    <span class="rev">★ FOUNDER</span>
+  </div>
+</nav>
+
+<div class="wrap">
+
+  <section class="hero">
+    <div>
+      <h1>Good afternoon, Shane 👋</h1>
+      <p class="sub">Wednesday, 8 July 2026 · “The wound is the place where the Light enters you.” — Rumi</p>
+      <div class="next">
+        <div class="dot"><svg fill="none" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg></div>
+        <div><div class="a">Next reset · Midday · 13:00</div><div class="b">Starts in 42 minutes — Breathe is recommended</div></div>
+      </div>
+      <button class="cta">Start it now</button><button class="ghost">Shift today's times →</button>
+    </div>
+    <div class="ringside">
+      <svg width="170" height="170" viewBox="0 0 170 170" style="transform:rotate(-90deg)">
+        <circle cx="85" cy="85" r="74" fill="none" stroke="#e7e9f2" stroke-width="12"/>
+        <circle cx="85" cy="85" r="74" fill="none" stroke="#5b6cff" stroke-width="12" stroke-linecap="round" stroke-dasharray="464.9" stroke-dashoffset="310"/>
+      </svg>
+      <div class="c"><div class="t">1 / 3</div><div class="l">BREAKS TODAY</div></div>
+    </div>
+  </section>
+
+  <p class="sec">Your breaks</p>
+  <p class="secsub">Pick one. Three to five minutes — back before anyone notices you were gone.</p>
+  <div class="breaks">
+    <div class="bk"><span class="donechip">✓ DONE</span><div class="tile t-sky"><svg fill="none" stroke-width="1.8" viewBox="0 0 24 24"><path d="M2 12s3.5-6.5 10-6.5S22 12 22 12s-3.5 6.5-10 6.5S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></div><h3>Eyes</h3><p>20-20-20 rule &amp; palming.</p><span class="m m-sky">3 MIN</span></div>
+    <div class="bk"><div class="tile t-peach"><svg fill="none" stroke-width="1.8" viewBox="0 0 24 24"><circle cx="12" cy="6" r="3"/><path d="M4 15c2-3.5 5-4.5 8-4.5s6 1 8 4.5"/></svg></div><h3>Shoulders</h3><p>Neck &amp; trap release.</p><span class="m m-peach">4 MIN</span></div>
+    <div class="bk"><div class="tile t-mint"><svg fill="none" stroke-width="1.8" viewBox="0 0 24 24"><circle cx="12" cy="4.5" r="2.5"/><path d="M12 7v7M12 14l-3.5 6M12 14l3.5 6M7 9.5h10"/></svg></div><h3>Stand</h3><p>Circulation reset.</p><span class="m m-mint">2 MIN</span></div>
+    <div class="bk"><div class="tile t-lav"><svg fill="none" stroke-width="1.8" viewBox="0 0 24 24"><path d="M3 8h9a3 3 0 10-3-3M3 12h14a3 3 0 11-3 3M3 16h6a2.5 2.5 0 11-2.5 2.5"/></svg></div><h3>Breathe</h3><p>Box breathing 4-4-4-4.</p><span class="m m-lav">4 MIN</span></div>
+    <div class="bk"><div class="tile t-sand"><svg fill="none" stroke-width="1.8" viewBox="0 0 24 24"><circle cx="10" cy="5" r="2.5"/><path d="M10 7.5V14h6M10 11h4M6 7.5V19M6 19h11v2"/></svg></div><h3>Posture</h3><p>Chin tucks &amp; resets.</p><span class="m m-sand">3 MIN</span></div>
+  </div>
+
+  <div class="cols">
+    <div class="panel">
+      <p class="sec" style="font-size:15px">Today</p>
+      <ul class="tl">
+        <li class="done"><span class="nd"></span><div class="tt">Morning reset — Eyes</div><div class="ts">10:00 · completed</div></li>
+        <li class="now"><span class="nd"></span><div class="tt">Midday reset</div><div class="ts">13:00 · up next</div></li>
+        <li><span class="nd"></span><div class="tt">Lunch Break Learning</div><div class="ts">12:30 · episode ready</div></li>
+        <li><span class="nd"></span><div class="tt">Afternoon reset</div><div class="ts">15:30</div></li>
+      </ul>
+    </div>
+    <div class="panel">
+      <p class="sec" style="font-size:15px">Lunch Break Learning</p>
+      <div class="epi">
+        <div class="art"><svg viewBox="0 0 24 24"><path d="M8 6l10 6-10 6z"/></svg></div>
+        <div style="flex:1">
+          <h4>Why the 3 PM Crash Happens</h4>
+          <p>Science · 4 min listen · one idea, one takeaway</p>
+          <button class="play">▶ Resume episode</button>
+          <div class="bar"><i></i></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <p class="sec" style="text-align:center">Break player — same theme</p>
+  <p class="secsub" style="text-align:center">Full-screen focus view during a break.</p>
+  <div class="player">
+    <h3>Breathe</h3>
+    <p class="ps">Box breathing 4-4-4-4 · follow the count</p>
+    <div class="pr">
+      <svg width="200" height="200" viewBox="0 0 200 200" style="transform:rotate(-90deg)">
+        <circle cx="100" cy="100" r="88" fill="none" stroke="#e7e9f2" stroke-width="11"/>
+        <circle cx="100" cy="100" r="88" fill="none" stroke="#5b6cff" stroke-width="11" stroke-linecap="round" stroke-dasharray="552.9" stroke-dashoffset="180"/>
+      </svg>
+      <div class="c"><div class="t">0:24</div><div class="l">STEP 3 OF 6</div></div>
+    </div>
+    <div class="pd"><i class="past"></i><i class="past"></i><i class="on"></i><i></i><i></i><i></i></div>
+    <p class="inst">Breathe in… two… three… four…</p>
+    <div class="pb"><button class="cta">Pause</button><button class="alt">Skip step</button></div>
+  </div>
+
+</div>
+</body>
+</html>

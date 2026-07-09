@@ -6,52 +6,94 @@
   <title>The Daily Reset — Your Breaks</title>
   <meta name="description" content="Your daily reset space. Research-backed 3–5 minute desk breaks for executives.">
   <meta name="theme-color" content="#fffdf8">
+  <script>document.documentElement.dataset.theme = localStorage.getItem('reset_theme') || 'light';</script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700;800&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="app.css">
 </head>
 <body>
+<div class="frame">
 
-<!-- ============ APP HEADER ============ -->
-<header class="app-header">
-  <div class="app-header-inner">
-    <a href="app.html" class="app-logo">The Daily Reset</a>
-    <div class="app-header-right">
-      <span class="access-pill" id="access-pill" style="display:none;"></span>
-      <nav class="app-nav">
-        <button class="app-nav-btn active" id="nav-dashboard" data-view="dashboard" title="Dashboard">Home</button>
-        <button class="app-nav-btn" id="nav-settings" data-view="settings" title="Settings">Settings</button>
-      </nav>
+<!-- ============ SIDEBAR (Concept A) ============ -->
+<aside class="side" id="sidebar">
+  <a href="app.html" class="side-logo">The Daily <span>Reset</span></a>
+
+  <nav class="side-nav">
+    <button class="nav-item active" id="nav-dashboard" data-view="dashboard">
+      <svg fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M3 11l9-8 9 8v10a1 1 0 01-1 1h-5v-6h-6v6H4a1 1 0 01-1-1z"/></svg>
+      Home
+    </button>
+    <button class="nav-item" id="nav-settings" data-view="settings">
+      <svg fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 11-4 0v-.09a1.65 1.65 0 00-1-1.51 1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 110-4h.09a1.65 1.65 0 001.51-1 1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06a1.65 1.65 0 001.82.33h0a1.65 1.65 0 001-1.51V3a2 2 0 114 0v.09a1.65 1.65 0 001 1.51h0a1.65 1.65 0 001.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06a1.65 1.65 0 00-.33 1.82v0a1.65 1.65 0 001.51 1H21a2 2 0 110 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+      Settings
+    </button>
+  </nav>
+
+  <!-- Daily plan editor -->
+  <div class="plan" id="plan-editor">
+    <p class="plan-title">Daily plan</p>
+    <div class="plan-slot">
+      <label>Morning</label>
+      <div class="plan-row">
+        <input type="time" id="slot-1" value="10:00">
+        <select id="plan-slot-1"></select>
+      </div>
+    </div>
+    <div class="plan-slot">
+      <label>Midday</label>
+      <div class="plan-row">
+        <input type="time" id="slot-2" value="13:00">
+        <select id="plan-slot-2"></select>
+      </div>
+    </div>
+    <div class="plan-slot">
+      <label>Afternoon</label>
+      <div class="plan-row">
+        <input type="time" id="slot-3" value="15:30">
+        <select id="plan-slot-3"></select>
+      </div>
+    </div>
+    <button class="auto-btn" id="auto-plan-btn">↻ Auto select</button>
+    <p class="plan-hint" id="plan-hint">Auto rotates your three breaks daily.</p>
+  </div>
+
+  <div class="side-spacer"></div>
+
+  <button class="theme-toggle" id="theme-toggle" title="Switch light / dark">
+    <span class="tt-icon" id="theme-icon">🌙</span><span id="theme-label">Dark mode</span>
+  </button>
+
+  <button class="side-cal-btn" id="side-add-calendar" title="Add your reset times to your own calendar">
+    <span>📅</span><span>Add to calendar</span>
+  </button>
+
+  <div class="user-chip">
+    <div class="avatar" id="user-initials">·</div>
+    <div class="user-meta">
+      <div class="user-name" id="user-name">Welcome</div>
+      <div class="access-pill" id="access-pill" style="display:none;"></div>
     </div>
   </div>
-</header>
+</aside>
 
+<!-- ============ MAIN ============ -->
 <main class="app-main">
 
-  <!-- ============ WELCOME / SIGN-UP (no access yet) ============ -->
+  <!-- WELCOME -->
   <section class="view" id="view-welcome" style="display:none;">
     <div class="welcome-card">
       <p class="welcome-eyebrow">Welcome to</p>
       <h1 class="welcome-title">The Daily Reset</h1>
       <p class="welcome-sub">Research-backed 3–5 minute desk breaks for executives. Start your 5-day free trial — full access, no credit card.</p>
       <form id="welcome-signup-form" class="welcome-form">
-        <div class="form-field">
-          <label for="welcome-name">Full name</label>
-          <input type="text" id="welcome-name" required placeholder="Jane Smith" autocomplete="name">
-        </div>
-        <div class="form-field">
-          <label for="welcome-email">Email</label>
-          <input type="email" id="welcome-email" required placeholder="jane@company.com" autocomplete="email">
-        </div>
+        <div class="form-field"><label for="welcome-name">Full name</label><input type="text" id="welcome-name" required placeholder="Jane Smith" autocomplete="name"></div>
+        <div class="form-field"><label for="welcome-email">Email</label><input type="email" id="welcome-email" required placeholder="jane@company.com" autocomplete="email"></div>
         <button type="submit" class="btn-primary btn-block">Start My Free Trial</button>
       </form>
       <div class="welcome-divider"><span>or</span></div>
       <button class="link-btn" id="welcome-code-link">I have an access code</button>
       <form id="welcome-code-form" class="welcome-form" style="display:none;">
-        <div class="form-field">
-          <label for="welcome-code">Access code</label>
-          <input type="text" id="welcome-code" placeholder="e.g. RESET-REVIEW-01" autocomplete="off">
-        </div>
+        <div class="form-field"><label for="welcome-code">Access code</label><input type="text" id="welcome-code" placeholder="e.g. RESET-REVIEW-01" autocomplete="off"></div>
         <p class="form-error" id="welcome-code-error" style="display:none;"></p>
         <button type="submit" class="btn-secondary btn-block">Activate Access</button>
       </form>
@@ -59,74 +101,101 @@
     </div>
   </section>
 
-  <!-- ============ TRIAL EXPIRED / UPGRADE ============ -->
+  <!-- PAYWALL -->
   <section class="view" id="view-paywall" style="display:none;">
     <div class="welcome-card">
       <p class="welcome-eyebrow">Your trial has ended</p>
       <h1 class="welcome-title">Keep your resets going.</h1>
-      <p class="welcome-sub">You've seen how the breaks work. Full access is $8/month or $79/year — cancel anytime, no lock-in.</p>
+      <p class="welcome-sub">You've seen how the breaks work. Full access is $8/month or $50/year — cancel anytime, no lock-in.</p>
       <div class="paywall-actions">
         <button class="btn-primary btn-block" id="paywall-monthly">Continue — $8/month</button>
-        <button class="btn-secondary btn-block" id="paywall-annual">Continue — $79/year (save ~18%)</button>
+        <button class="btn-secondary btn-block" id="paywall-annual">Continue — $50/year (save ~48%)</button>
       </div>
       <div class="welcome-divider"><span>or</span></div>
       <button class="link-btn" id="paywall-code-link">I have an access code</button>
       <form id="paywall-code-form" class="welcome-form" style="display:none;">
-        <div class="form-field">
-          <label for="paywall-code">Access code</label>
-          <input type="text" id="paywall-code" placeholder="e.g. RESET-REVIEW-01" autocomplete="off">
-        </div>
+        <div class="form-field"><label for="paywall-code">Access code</label><input type="text" id="paywall-code" placeholder="e.g. RESET-REVIEW-01" autocomplete="off"></div>
         <p class="form-error" id="paywall-code-error" style="display:none;"></p>
         <button type="submit" class="btn-secondary btn-block">Activate Access</button>
       </form>
     </div>
   </section>
 
-  <!-- ============ DASHBOARD ============ -->
+  <!-- DASHBOARD (Concept B layout) -->
   <section class="view" id="view-dashboard" style="display:none;">
-    <div class="dash-head">
-      <div>
-        <h1 class="dash-greeting" id="dash-greeting">Good morning</h1>
+
+    <section class="hero">
+      <div class="hero-left">
+        <h1 id="dash-greeting">Good morning</h1>
         <p class="dash-date" id="dash-date"></p>
+        <div class="next-chip">
+          <div class="next-dot">
+            <svg fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
+          </div>
+          <div>
+            <div class="next-a" id="next-title">Next reset</div>
+            <div class="next-b" id="next-sub"></div>
+          </div>
+        </div>
+        <div class="hero-actions">
+          <button class="btn-primary" id="hero-start">Start it now</button>
+        </div>
       </div>
-    </div>
+      <div class="hero-ring">
+        <svg width="160" height="160" viewBox="0 0 160 160" style="transform:rotate(-90deg)">
+          <circle class="ring-track" cx="80" cy="80" r="69" fill="none" stroke-width="11"/>
+          <circle class="ring-prog" id="hero-ring-prog" cx="80" cy="80" r="69" fill="none" stroke-width="11" stroke-linecap="round" stroke-dasharray="433.5" stroke-dashoffset="433.5"/>
+        </svg>
+        <div class="hero-ring-center">
+          <div class="hrc-count" id="hero-ring-count">0 / 3</div>
+          <div class="hrc-label">BREAKS TODAY</div>
+        </div>
+      </div>
+    </section>
 
     <div class="quote-card" id="quote-card" style="display:none;">
-      <span class="quote-mark">“</span>
-      <p class="quote-eyebrow">Today's anchor</p>
+      <div class="quote-head"><span class="quote-mark">“</span><span class="quote-title">Quote of the Day</span></div>
       <p class="quote-text" id="dash-quote-text"></p>
       <p class="quote-author" id="dash-quote-author"></p>
     </div>
 
-    <h2 class="dash-section-title">Your breaks</h2>
-    <p class="dash-section-sub">Pick one. Three to five minutes. Back before anyone notices you were gone.</p>
+    <h2 class="sec">Your breaks</h2>
+    <p class="secsub" id="breaks-sub">Pick one. Three to five minutes — back before anyone notices you were gone.</p>
     <div class="dash-break-grid" id="dash-break-grid"><!-- rendered by app.js --></div>
 
-    <div class="dash-row">
-      <div class="dash-card learning-card" id="dash-learning-card">
-        <div class="dash-card-head">
-          <h3>Lunch Break Learning</h3>
-          <span class="tag" id="learning-status-tag">Off</span>
-        </div>
-        <p class="dash-card-body" id="learning-teaser">One 3–5 minute audio episode a day — one idea, one story, one takeaway. Turn it on in Settings.</p>
-        <div class="dash-card-actions">
-          <button class="btn-secondary btn-tinted" id="dash-learning-btn">Open today's episode</button>
+    <div class="cols">
+      <div class="panel">
+        <h3 class="panel-title">Today</h3>
+        <ul class="tl" id="dash-schedule-list"><!-- rendered by app.js --></ul>
+        <div class="today-actions">
+          <button class="mini-btn" id="dash-edit-schedule">Adjust times</button>
+          <button class="mini-btn mini-btn-ghost" id="dash-add-calendar">📅 Add to calendar</button>
         </div>
       </div>
-      <div class="dash-card schedule-card">
-        <div class="dash-card-head">
-          <h3>Today's schedule</h3>
-          <span class="tag tag-soft">3 breaks</span>
+      <div class="panel">
+        <div class="panel-head">
+          <h3 class="panel-title">Lunch Break Learning</h3>
+          <span class="tag" id="learning-status-tag">Off</span>
         </div>
-        <ul class="schedule-list" id="dash-schedule-list"><!-- rendered by app.js --></ul>
-        <div class="dash-card-actions">
-          <button class="btn-secondary btn-tinted" id="dash-edit-schedule">Adjust times</button>
+        <div class="epi">
+          <div class="art">
+            <svg fill="currentColor" stroke="none" viewBox="0 0 24 24"><path d="M8 6l10 6-10 6z"/></svg>
+          </div>
+          <div class="epi-body">
+            <p class="epi-teaser" id="learning-teaser"></p>
+            <button class="btn-dark" id="dash-learning-btn">Open today's episode</button>
+          </div>
         </div>
       </div>
     </div>
+
+    <div class="bottom-cta">
+      <button class="btn-primary btn-big" id="bottom-start-break">▶&nbsp; Start Your Break Now</button>
+      <p class="bottom-cta-sub" id="bottom-cta-sub"></p>
+    </div>
   </section>
 
-  <!-- ============ BREAK PLAYER ============ -->
+  <!-- BREAK PLAYER -->
   <section class="view" id="view-player" style="display:none;">
     <button class="back-btn" id="player-back">← Dashboard</button>
     <div class="player-shell">
@@ -134,36 +203,29 @@
         <h1 id="player-title"></h1>
         <p id="player-subtitle"></p>
       </div>
-
       <div class="ring-wrap">
         <svg class="ring" viewBox="0 0 220 220" aria-hidden="true">
-          <circle class="ring-track" cx="110" cy="110" r="96"></circle>
-          <circle class="ring-progress" id="ring-progress" cx="110" cy="110" r="96"></circle>
+          <circle class="ring-track" cx="110" cy="110" r="96" fill="none" stroke-width="12"></circle>
+          <circle class="ring-prog" id="ring-progress" cx="110" cy="110" r="96" fill="none" stroke-width="12" stroke-linecap="round"></circle>
         </svg>
         <div class="ring-center">
           <div class="ring-time" id="ring-time">--</div>
           <div class="ring-label" id="ring-label">Ready</div>
         </div>
       </div>
-
-      <div class="step-dots" id="step-dots"><!-- rendered by app.js --></div>
+      <div class="step-dots" id="step-dots"></div>
       <p class="player-instruction" id="player-instruction">Press Start when you're ready.</p>
-
       <div class="player-controls">
         <button class="btn-primary" id="player-start">Start</button>
         <button class="btn-secondary" id="player-pause" style="display:none;">Pause</button>
         <button class="btn-secondary" id="player-skip" style="display:none;">Skip step</button>
       </div>
-
       <p class="audio-source" id="player-audio-source" style="display:none;"></p>
-
-      <div class="player-quote" id="player-quote" style="display:none;">
-        <p id="player-quote-text"></p>
-      </div>
+      <div class="player-quote" id="player-quote" style="display:none;"><p id="player-quote-text"></p></div>
     </div>
   </section>
 
-  <!-- ============ LEARNING PLAYER ============ -->
+  <!-- LEARNING PLAYER -->
   <section class="view" id="view-learning" style="display:none;">
     <button class="back-btn" id="learning-back">← Dashboard</button>
     <div class="player-shell">
@@ -172,56 +234,34 @@
         <h1 id="learning-title"></h1>
         <p class="learning-meta"><span class="tag" id="learning-category"></span> <span id="learning-duration"></span></p>
       </div>
-
       <p class="learning-idea" id="learning-idea"></p>
-
       <div class="learning-progress">
         <div class="progress-bar"><div class="progress-fill" id="learning-progress-fill"></div></div>
         <span class="progress-time" id="learning-progress-time">0:00</span>
       </div>
-
       <div class="player-controls">
         <button class="btn-primary" id="learning-play">Play</button>
         <button class="btn-secondary" id="learning-pause" style="display:none;">Pause</button>
         <button class="btn-secondary" id="learning-done">Done for today</button>
       </div>
-
       <p class="audio-source" id="learning-audio-source" style="display:none;"></p>
       <p class="learning-note" id="learning-note"></p>
-
       <button class="link-btn" id="transcript-toggle">Show transcript</button>
       <div class="transcript" id="learning-transcript" style="display:none;"></div>
-
-      <!-- Reviewer-only: browse and jump between episodes -->
       <div class="reviewer-tools" id="learning-reviewer-tools" style="display:none;">
         <p class="reviewer-tools-title">Reviewer tools</p>
         <div class="reviewer-tools-row">
-          <select id="reviewer-episode-select"><!-- rendered by app.js --></select>
+          <select id="reviewer-episode-select"></select>
           <button class="btn-secondary" id="reviewer-next-episode">Next episode →</button>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- ============ SETTINGS ============ -->
+  <!-- SETTINGS -->
   <section class="view" id="view-settings" style="display:none;">
     <button class="back-btn" id="settings-back">← Dashboard</button>
     <h1 class="settings-title">Settings</h1>
-
-    <div class="settings-card">
-      <h3>Daily break schedule</h3>
-      <p class="settings-sub">Three breaks a day. Shift or skip anytime — no streaks, no guilt.</p>
-      <div class="schedule-times">
-        <div class="schedule-slot"><label for="slot-1">Morning</label><input type="time" id="slot-1" value="10:00"></div>
-        <div class="schedule-slot"><label for="slot-2">Midday</label><input type="time" id="slot-2" value="13:00"></div>
-        <div class="schedule-slot"><label for="slot-3">Afternoon</label><input type="time" id="slot-3" value="15:30"></div>
-      </div>
-      <div class="toggle-row reminder-row">
-        <label class="toggle"><input type="checkbox" id="reminder-toggle" checked><span class="toggle-slider"></span></label>
-        <span class="toggle-label">Alert me at each break time</span>
-      </div>
-      <p class="settings-note">Uses a desktop notification when your browser allows it; otherwise an alert appears inside the app.</p>
-    </div>
 
     <div class="settings-card">
       <h3>Audio narration</h3>
@@ -233,6 +273,20 @@
       <div class="voice-options" id="voice-options">
         <button class="voice-btn" data-gender="female">Female voice</button>
         <button class="voice-btn" data-gender="male">Male voice</button>
+      </div>
+    </div>
+
+    <div class="settings-card">
+      <h3>Break-time alerts</h3>
+      <p class="settings-sub">A reminder at each time in your daily plan. Uses a desktop notification when your browser allows it; otherwise an alert appears inside the app.</p>
+      <div class="toggle-row">
+        <label class="toggle"><input type="checkbox" id="reminder-toggle" checked><span class="toggle-slider"></span></label>
+        <span class="toggle-label">Alert me at each break time</span>
+      </div>
+      <div class="calendar-block">
+        <p class="settings-sub" style="margin:6px 0 12px;">For reminders even when the app is closed, add your reset times to your own calendar. It fires the alerts on every device — phone included — with nothing to keep open.</p>
+        <button class="btn-secondary" id="add-calendar-btn">📅 Add my resets to my calendar</button>
+        <p class="calendar-hint" id="calendar-hint" style="display:none;"></p>
       </div>
     </div>
 
@@ -251,7 +305,7 @@
 
     <div class="settings-card">
       <h3>Account</h3>
-      <ul class="account-list" id="account-list"><!-- rendered by app.js --></ul>
+      <ul class="account-list" id="account-list"></ul>
       <div class="code-entry">
         <label for="settings-code">Have an access code?</label>
         <div class="code-entry-row">
@@ -271,6 +325,18 @@
   </section>
 
 </main>
+</div>
+
+<!-- ============ QUOTE OF THE DAY SPLASH (first visit each day) ============ -->
+<div class="modal-overlay splash-overlay" id="quote-splash" style="display:none;">
+  <div class="splash">
+    <p class="splash-kicker">Quote of the Day</p>
+    <span class="splash-mark">“</span>
+    <p class="splash-text" id="splash-quote-text"></p>
+    <p class="splash-author" id="splash-quote-author"></p>
+    <button class="btn-primary btn-big" id="splash-begin">Begin today</button>
+  </div>
+</div>
 
 <!-- ============ TOPIC PICKER MODAL ============ -->
 <div class="modal-overlay" id="topic-modal" style="display:none;">
@@ -289,7 +355,7 @@
   </div>
 </div>
 
-<!-- ============ NOTICE MODAL (popout messages) ============ -->
+<!-- ============ NOTICE MODAL ============ -->
 <div class="modal-overlay" id="notice-modal" style="display:none;">
   <div class="modal">
     <h3 id="notice-title"></h3>
@@ -305,7 +371,7 @@
     <h3>Upgrade to Full Access</h3>
     <p class="modal-desc">All 5 breaks, audio narration, and a new learning episode every day.</p>
     <button class="btn-primary btn-block" id="upgrade-monthly">Upgrade — $8/month</button>
-    <button class="btn-secondary btn-block" id="upgrade-annual">Upgrade — $79/year</button>
+    <button class="btn-secondary btn-block" id="upgrade-annual">Upgrade — $50/year</button>
     <p class="modal-cancel-note">Cancel anytime. No lock-in.</p>
   </div>
 </div>
@@ -318,6 +384,7 @@
 <script src="voice.js"></script>
 <script src="audio-manifest.js"></script>
 <script src="audio.js"></script>
+<script src="calendar.js"></script>
 <script src="app.js"></script>
 
 </body>

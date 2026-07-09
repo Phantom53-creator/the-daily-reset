@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Concept A — Boardroom Dark (visual mockup)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,500;0,600;1,500&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  /* CONCEPT A — Boardroom Dark. Visual mockup only — nothing is wired up. */
+  :root{
+    --bg:#0e1116; --panel:#151a21; --panel2:#1b212b; --line:#242c37;
+    --gold:#d4a24e; --gold-soft:#b8893a; --teal:#2e8d7e;
+    --text:#e9e6df; --muted:#8b94a3; --dim:#5c6572;
+  }
+  *{box-sizing:border-box} body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,system-ui,sans-serif;line-height:1.55}
+  .serif{font-family:Fraunces,Georgia,serif}
+  .mock-banner{background:var(--gold);color:#1a1408;text-align:center;font-weight:800;font-size:12px;letter-spacing:.12em;text-transform:uppercase;padding:8px}
+  .frame{display:flex;min-height:100vh}
+
+  /* Sidebar */
+  .side{width:230px;flex-shrink:0;border-right:1px solid var(--line);padding:28px 18px;display:flex;flex-direction:column;gap:6px}
+  .side .logo{font-family:Fraunces,serif;font-size:21px;font-weight:600;letter-spacing:-.01em;margin:0 10px 26px}
+  .side .logo span{color:var(--gold)}
+  .nav-item{display:flex;align-items:center;gap:11px;padding:11px 14px;border-radius:10px;color:var(--muted);font-size:14px;font-weight:600}
+  .nav-item.active{background:var(--panel2);color:var(--text);border:1px solid var(--line)}
+  .nav-item .ic{width:18px;height:18px;display:inline-flex}
+  .nav-item .ic svg{width:18px;height:18px;stroke:currentColor}
+  .side .spacer{flex:1}
+  .user-chip{display:flex;align-items:center;gap:10px;padding:12px;border:1px solid var(--line);border-radius:12px;background:var(--panel)}
+  .avatar{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,var(--gold),#8a5f1f);display:flex;align-items:center;justify-content:center;font-weight:800;color:#171207;font-size:13px}
+  .user-chip .nm{font-size:13px;font-weight:700;line-height:1.2}
+  .user-chip .rl{font-size:10px;color:var(--gold);font-weight:800;letter-spacing:.08em}
+
+  /* Main */
+  .main{flex:1;padding:34px 42px;max-width:1000px}
+  .top{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:26px}
+  h1{font-family:Fraunces,serif;font-weight:600;font-size:38px;letter-spacing:-.01em;margin:0}
+  .date{color:var(--muted);font-size:14px;margin-top:4px}
+  .pill{border:1px solid var(--gold);color:var(--gold);font-size:11px;font-weight:800;letter-spacing:.1em;padding:7px 14px;border-radius:999px}
+
+  .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:22px}
+  .stat{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px 18px}
+  .stat .k{font-size:11px;color:var(--muted);font-weight:700;letter-spacing:.09em;text-transform:uppercase}
+  .stat .v{font-size:24px;font-weight:800;margin-top:4px}
+  .stat .v em{font-style:normal;color:var(--gold)}
+
+  .quote{border-left:3px solid var(--gold);background:linear-gradient(90deg,rgba(212,162,78,.08),transparent 70%);padding:18px 24px;border-radius:0 14px 14px 0;margin-bottom:30px}
+  .quote p{font-family:Fraunces,serif;font-style:italic;font-size:19px;margin:0;color:var(--text)}
+  .quote span{display:block;margin-top:6px;font-size:12.5px;color:var(--muted)}
+
+  .sec{font-size:12px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--dim);margin:0 0 14px}
+  .bento{display:grid;grid-template-columns:1.35fr 1fr 1fr;grid-template-rows:auto auto;gap:14px;margin-bottom:30px}
+  .bcard{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:20px}
+  .bcard h3{margin:6px 0 4px;font-size:16px}
+  .bcard p{margin:0;color:var(--muted);font-size:12.5px}
+  .bcard .min{display:inline-block;margin-top:12px;font-size:11px;font-weight:800;color:var(--gold);border:1px solid rgba(212,162,78,.4);padding:3px 9px;border-radius:999px}
+  .feat{grid-row:span 2;background:linear-gradient(160deg,#123b34,#0e1116 80%);border:1px solid #1e4b42;display:flex;flex-direction:column}
+  .feat .tag{font-size:10.5px;font-weight:800;letter-spacing:.12em;color:#67c7b5;text-transform:uppercase}
+  .feat h3{font-family:Fraunces,serif;font-size:26px;font-weight:600;margin:10px 0 6px}
+  .feat p{color:#9db8b1;font-size:13.5px}
+  .feat .go{margin-top:auto;align-self:flex-start;background:var(--gold);color:#1a1408;font-weight:800;font-size:14px;padding:12px 26px;border-radius:999px;border:0}
+  .icx{width:34px;height:34px;border-radius:9px;background:var(--panel2);border:1px solid var(--line);display:flex;align-items:center;justify-content:center}
+  .icx svg{width:18px;height:18px;stroke:var(--gold)}
+
+  .row2{display:grid;grid-template-columns:1.4fr 1fr;gap:14px;margin-bottom:34px}
+  .learn{display:flex;gap:16px;align-items:center}
+  .cover{width:74px;height:74px;border-radius:12px;background:linear-gradient(135deg,#2e8d7e,#123b34);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+  .cover svg{width:26px;height:26px;stroke:#eafffa}
+  .learn .t{font-size:15px;font-weight:700;margin:2px 0}
+  .learn .s{font-size:12.5px;color:var(--muted)}
+  .sched li{display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--line);font-size:13.5px;list-style:none}
+  .sched{margin:6px 0 0;padding:0}
+  .sched li:last-child{border:0}
+  .sched .tm{color:var(--gold);font-weight:800}
+  .sched .done{color:var(--dim);text-decoration:line-through}
+
+  /* Player preview */
+  .player-wrap{display:flex;gap:26px;align-items:center;background:var(--panel);border:1px solid var(--line);border-radius:20px;padding:34px 38px}
+  .ring{position:relative;width:190px;height:190px;flex-shrink:0}
+  .ring svg{transform:rotate(-90deg)}
+  .ring .c{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+  .ring .t{font-size:38px;font-weight:800;letter-spacing:-.03em}
+  .ring .l{font-size:11px;color:var(--muted);margin-top:3px}
+  .pinfo h3{font-family:Fraunces,serif;font-size:26px;font-weight:600;margin:0 0 6px}
+  .pinfo .inst{font-size:16px;margin:12px 0 18px;color:var(--text)}
+  .dots{display:flex;gap:7px;margin-bottom:16px}
+  .dots i{width:8px;height:8px;border-radius:50%;background:var(--line)}
+  .dots i.on{background:var(--gold)}
+  .dots i.past{background:var(--gold-soft);opacity:.45}
+  .btns{display:flex;gap:10px}
+  .b1{background:var(--gold);color:#1a1408;font-weight:800;font-size:13.5px;padding:11px 22px;border-radius:999px;border:0}
+  .b2{background:transparent;color:var(--text);font-weight:700;font-size:13.5px;padding:11px 22px;border-radius:999px;border:1px solid var(--line)}
+</style>
+</head>
+<body>
+<div class="mock-banner">Concept A · “Boardroom Dark” · visual mockup only — buttons are not functional</div>
+<div class="frame">
+
+  <aside class="side">
+    <p class="logo">The Daily <span>Reset</span></p>
+    <div class="nav-item active"><span class="ic"><svg fill="none" stroke-width="2" viewBox="0 0 24 24"><path d="M3 11l9-8 9 8v10a1 1 0 01-1 1h-5v-6h-6v6H4a1 1 0 01-1-1z"/></svg></span>Home</div>
+    <div class="nav-item"><span class="ic"><svg fill="none" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg></span>Breaks</div>
+    <div class="nav-item"><span class="ic"><svg fill="none" stroke-width="2" viewBox="0 0 24 24"><path d="M4 5h16v14H4z"/><path d="M10 9l5 3-5 3z"/></svg></span>Learning</div>
+    <div class="nav-item"><span class="ic"><svg fill="none" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19 12a7 7 0 01-.1 1.2l2 1.6-2 3.4-2.4-1a7 7 0 01-2 1.2L14 21h-4l-.5-2.6a7 7 0 01-2-1.2l-2.4 1-2-3.4 2-1.6A7 7 0 015 12c0-.4 0-.8.1-1.2l-2-1.6 2-3.4 2.4 1a7 7 0 012-1.2L10 3h4l.5 2.6a7 7 0 012 1.2l2.4-1 2 3.4-2 1.6c.1.4.1.8.1 1.2z"/></svg></span>Settings</div>
+    <div class="spacer"></div>
+    <div class="user-chip">
+      <div class="avatar">SC</div>
+      <div><div class="nm">Shane Carrol</div><div class="rl">★ FOUNDER</div></div>
+    </div>
+  </aside>
+
+  <main class="main">
+    <div class="top">
+      <div><h1>Good afternoon, Shane.</h1><div class="date">Wednesday, 8 July 2026</div></div>
+      <span class="pill">★ FOUNDER ACCESS</span>
+    </div>
+
+    <div class="stats">
+      <div class="stat"><div class="k">Breaks today</div><div class="v"><em>1</em> / 3</div></div>
+      <div class="stat"><div class="k">Current streak</div><div class="v">6 days</div></div>
+      <div class="stat"><div class="k">Next reset</div><div class="v">13:00</div></div>
+    </div>
+
+    <div class="quote">
+      <p>“The wound is the place where the Light enters you.”</p>
+      <span>— Rumi · Today's anchor</span>
+    </div>
+
+    <p class="sec">Your breaks</p>
+    <div class="bento">
+      <div class="bcard feat">
+        <span class="tag">Recommended now</span>
+        <h3>Breathe</h3>
+        <p>Box breathing 4-4-4-4. Four minutes to reset your nervous system before the next call.</p>
+        <button class="go">Start · 4 min</button>
+      </div>
+      <div class="bcard"><div class="icx"><svg fill="none" stroke-width="1.8" viewBox="0 0 24 24"><path d="M2 12s3.5-6.5 10-6.5S22 12 22 12s-3.5 6.5-10 6.5S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></div><h3>Eyes</h3><p>20-20-20 rule and palming.</p><span class="min">3 MIN</span></div>
+      <div class="bcard"><div class="icx"><svg fill="none" stroke-width="1.8" viewBox="0 0 24 24"><circle cx="12" cy="6" r="3"/><path d="M4 15c2-3.5 5-4.5 8-4.5s6 1 8 4.5"/></svg></div><h3>Shoulders</h3><p>Tension release for neck &amp; traps.</p><span class="min">4 MIN</span></div>
+      <div class="bcard"><div class="icx"><svg fill="none" stroke-width="1.8" viewBox="0 0 24 24"><circle cx="12" cy="4.5" r="2.5"/><path d="M12 7v7M12 14l-3.5 6M12 14l3.5 6M7 9.5h10"/></svg></div><h3>Stand</h3><p>Two-minute circulation reset.</p><span class="min">2 MIN</span></div>
+      <div class="bcard"><div class="icx"><svg fill="none" stroke-width="1.8" viewBox="0 0 24 24"><circle cx="10" cy="5" r="2.5"/><path d="M10 7.5V14h6M10 11h4M6 7.5V19M6 19h11v2"/></svg></div><h3>Posture</h3><p>Chin tucks &amp; scapular resets.</p><span class="min">3 MIN</span></div>
+    </div>
+
+    <div class="row2">
+      <div class="bcard learn">
+        <div class="cover"><svg fill="none" stroke-width="2" viewBox="0 0 24 24"><path d="M8 6l10 6-10 6z"/></svg></div>
+        <div>
+          <p class="sec" style="margin:0 0 2px">Lunch break learning</p>
+          <div class="t">Why the 3 PM Crash Happens</div>
+          <div class="s">Science · 4 min listen · today's episode</div>
+        </div>
+      </div>
+      <div class="bcard">
+        <p class="sec" style="margin:0 0 4px">Today's schedule</p>
+        <ul class="sched">
+          <li><span class="done">Morning reset</span><span class="tm done">10:00</span></li>
+          <li><span>Midday reset</span><span class="tm">13:00</span></li>
+          <li><span>Afternoon reset</span><span class="tm">15:30</span></li>
+        </ul>
+      </div>
+    </div>
+
+    <p class="sec">Break player — same theme</p>
+    <div class="player-wrap">
+      <div class="ring">
+        <svg width="190" height="190" viewBox="0 0 190 190">
+          <circle cx="95" cy="95" r="84" fill="none" stroke="#242c37" stroke-width="10"/>
+          <circle cx="95" cy="95" r="84" fill="none" stroke="#d4a24e" stroke-width="10" stroke-linecap="round" stroke-dasharray="527.8" stroke-dashoffset="380"/>
+        </svg>
+        <div class="c"><div class="t">0:16</div><div class="l">STEP 2 OF 7</div></div>
+      </div>
+      <div class="pinfo">
+        <h3>Shoulders</h3>
+        <div class="dots"><i class="past"></i><i class="on"></i><i></i><i></i><i></i><i></i><i></i></div>
+        <p class="inst">Lift your shoulders up toward your ears. Hold — five, four, three…</p>
+        <div class="btns"><button class="b1">Pause</button><button class="b2">Skip step</button></div>
+      </div>
+    </div>
+  </main>
+</div>
+</body>
+</html>

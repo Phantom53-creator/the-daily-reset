@@ -43,10 +43,6 @@ const AudioEngine = {
     return `audio/breaks/${breakId}-step${stepIndex + 1}-${this.gender}.mp3`;
   },
 
-  midpointCueSrc() {
-    return `audio/breaks/keep-going-${this.gender}.mp3`;
-  },
-
   episodeSrc(episodeId) {
     return `audio/learning/${episodeId}-${this.gender}.mp3`;
   },
@@ -59,7 +55,7 @@ const AudioEngine = {
   // --- Short narration (break steps, cues) ---
   // Plays the recorded clip if available, otherwise speaks the text.
 
-  narrate(src, text, onEnd) {
+  narrate(src, text, onEnd, rate) {
     if (!this.enabled) { if (onEnd) onEnd(); return; }
     this.stop();
 
@@ -70,15 +66,15 @@ const AudioEngine = {
       this.player.onerror = () => {
         // File listed in manifest but missing/unplayable — fall back to voice
         this.mode = 'tts';
-        window.VoiceSystem?.speak(text, onEnd);
+        window.VoiceSystem?.speak(text, onEnd, rate);
       };
       this.player.play().catch(() => {
         this.mode = 'tts';
-        window.VoiceSystem?.speak(text, onEnd);
+        window.VoiceSystem?.speak(text, onEnd, rate);
       });
     } else {
       this.mode = 'tts';
-      window.VoiceSystem?.speak(text, onEnd);
+      window.VoiceSystem?.speak(text, onEnd, rate);
     }
   },
 

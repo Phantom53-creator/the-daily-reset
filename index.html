@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>The Daily Reset — 3-Minute Desk Breaks for Executives</title>
   <meta name="description" content="Research-backed microbreaks for executives and founders. 3-5 minutes at your desk. No meditation, no yoga, no fluff.">
+  <script>document.documentElement.dataset.theme = localStorage.getItem('reset_theme') || 'light';</script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
@@ -22,6 +23,7 @@
       <a href="#about">About</a>
       <a href="#pricing">Pricing</a>
     </div>
+    <button class="theme-toggle-btn" id="theme-toggle-landing" title="Switch light / dark">🌙</button>
     <a href="#" class="nav-cta js-start-trial" id="nav-cta">Try Free</a>
   </div>
 </nav>
@@ -79,7 +81,7 @@
         <span class="break-time">3 min</span>
       </div>
       <div class="break-card">
-        <div class="break-icon">Shoulders</div>
+        <div class="break-icon">💆</div>
         <h3>Shoulders</h3>
         <p>Seated tension release for trapezius and neck. Forward head posture adds up to 27 kg of strain to the cervical spine [S3]. This sequence reverses it in 4 minutes.</p>
         <span class="break-time">4 min</span>
@@ -249,7 +251,7 @@
           <li>Continue after trial ends</li>
         </ul>
         <button class="btn-primary" id="upgrade-btn">Upgrade to Full Access</button>
-        <p class="annual-option">or <a href="#" id="annual-link">$79/year (save ~18%)</a></p>
+        <p class="annual-option">or <a href="#" id="annual-link">$50/year (save ~48%)</a></p>
       </div>
     </div>
     <p class="pricing-note">Cancel anytime. No lock-in. Your data stays in your browser — we don't store it.</p>
@@ -350,10 +352,10 @@
   <div class="modal">
     <button class="modal-close" id="modal-close">×</button>
     <h3>Get Full Access</h3>
-    <p class="modal-price">$8/month or $79/year</p>
+    <p class="modal-price">$8/month or $50/year</p>
     <p class="modal-desc">All 5 breaks, audio narration, and a new Lunch Break Learning episode every day.</p>
     <button class="btn-primary" id="stripe-pay-btn">Full Access — $8/month</button>
-    <button class="btn-secondary" id="stripe-pay-annual">Full Access — $79/year</button>
+    <button class="btn-secondary" id="stripe-pay-annual">Full Access — $50/year</button>
     <p class="modal-cancel-note">Cancel anytime. No lock-in.</p>
   </div>
 </div>
@@ -363,6 +365,17 @@
 <script>
 // Landing page logic — signup opens the app in its own workspace (app.html)
 document.addEventListener('DOMContentLoaded', () => {
+  // Light / dark toggle (shared with the app via reset_theme)
+  const themeBtn = document.getElementById('theme-toggle-landing');
+  const setIcon = () => { if (themeBtn) themeBtn.textContent = document.documentElement.dataset.theme === 'dark' ? '☀️' : '🌙'; };
+  setIcon();
+  themeBtn?.addEventListener('click', () => {
+    const next = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
+    document.documentElement.dataset.theme = next;
+    localStorage.setItem('reset_theme', next);
+    setIcon();
+  });
+
   const hasAccess = window.hasFullAccess() || window.getAccessLevel() !== 'none';
 
   // Returning users: every trial CTA becomes "Open the App"

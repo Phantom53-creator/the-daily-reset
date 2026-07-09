@@ -1,8 +1,9 @@
 // app.js — The Daily Reset app shell (app.html)
-// View routing, access gating, dashboard, break player, learning player, settings.
-// Landing page (index.html) has no app logic — it only links here.
+// Sidebar layout (daily plan editor + theme toggle), Concept-B dashboard,
+// access gating, break player with timed cues, learning player, settings.
 
-const RING_CIRCUMFERENCE = 2 * Math.PI * 96; // matches r=96 in app.html
+const RING_CIRCUMFERENCE = 2 * Math.PI * 96;   // player ring (r=96)
+const HERO_RING_CIRC = 2 * Math.PI * 69;       // hero ring (r=69)
 
 const BREAK_ICONS = {
   eyes: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-6.5 10-6.5S22 12 22 12s-3.5 6.5-10 6.5S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>',
@@ -12,6 +13,16 @@ const BREAK_ICONS = {
   posture: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="5" r="2.5"/><path d="M10 7.5V14h6"/><path d="M10 11h4"/><path d="M6 7.5V19M6 19h11v2M6 19v2"/></svg>'
 };
 
+const PLAN_SLOTS = [
+  { slot: 'slot-1', planSel: 'plan-slot-1', label: 'Morning reset' },
+  { slot: 'slot-2', planSel: 'plan-slot-2', label: 'Midday reset' },
+  { slot: 'slot-3', planSel: 'plan-slot-3', label: 'Afternoon reset' }
+];
+
+function computeDayIndex() {
+  return Math.floor((Date.now() - new Date(new Date().getFullYear(), 0, 0)) / 86400000);
+}
+
 const ResetApp = {
   state: {
     currentBreak: null,
@@ -20,18 +31,22 @@ const ResetApp = {
     timer: null,
     isPaused: false,
     running: false,
-    midpointFired: false,
-    dayIndex: Math.floor((Date.now() - new Date(new Date().getFullYear(), 0, 0)) / 86400000),
+    stepAudioMode: null, // 'recorded' | 'tts' | null
+    dayIndex: computeDayIndex(),
+    dayKey: null,
     learningEpisode: null,
     learningElapsed: 0,
     learningTimer: null,
     learningPlaying: false,
     learningStarted: false,
-    learningMode: null // 'recorded' | 'tts'
+    learningMode: null
   },
 
   init() {
-    this.bindHeader();
+    this.state.dayKey = this.getTodayKey();
+    this.bindTheme();
+    this.bindSidebarNav();
+    this.bindPlanEditor();
     this.bindWelcome();
     this.bindPaywall();
     this.bindDashboard();
@@ -42,9 +57,30 @@ const ResetApp = {
     this.bindNotice();
     this.bindReminders();
     this.loadSettings();
+    this.renderPlanEditor();
     this.renderAccessPill();
     this.route();
     this.startReminderTicker();
+  },
+
+  // ---------- Theme ----------
+
+  bindTheme() {
+    this.renderThemeToggle();
+    document.getElementById('theme-toggle')?.addEventListener('click', () => {
+      const next = (document.documentElement.dataset.theme === 'dark') ? 'light' : 'dark';
+      document.documentElement.dataset.theme = next;
+      localStorage.setItem('reset_theme', next);
+      this.renderThemeToggle();
+    });
+  },
+
+  renderThemeToggle() {
+    const dark = document.documentElement.dataset.theme === 'dark';
+    const icon = document.getElementById('theme-icon');
+    const label = document.getElementById('theme-label');
+    if (icon) icon.textContent = dark ? '☀️' : '🌙';
+    if (label) label.textContent = dark ? 'Light mode' : 'Dark mode';
   },
 
   // ---------- Routing ----------
@@ -60,15 +96,12 @@ const ResetApp = {
     document.querySelectorAll('.view').forEach(v => { v.style.display = 'none'; });
     const view = document.getElementById(`view-${name}`);
     if (view) view.style.display = ''; // revert to stylesheet display (flex for welcome/paywall)
-    document.querySelectorAll('.app-nav-btn').forEach(b => b.classList.toggle('active', b.dataset.view === name));
-    // Header nav is meaningless before access exists
-    const nav = document.querySelector('.app-nav');
-    if (nav) nav.style.display = (name === 'welcome' || name === 'paywall') ? 'none' : 'flex';
+    document.querySelectorAll('.nav-item').forEach(b => b.classList.toggle('active', b.dataset.view === name));
+    document.body.classList.toggle('no-chrome', name === 'welcome' || name === 'paywall');
     window.scrollTo(0, 0);
   },
 
   leavePlayers() {
-    // Stop anything audible when navigating away
     this.stopBreakTimer();
     this.stopLearningTicker();
     window.AudioEngine?.stop();
@@ -77,23 +110,27 @@ const ResetApp = {
     this.state.learningStarted = false;
   },
 
-  // ---------- Header / access ----------
+  // ---------- Sidebar ----------
 
-  bindHeader() {
+  bindSidebarNav() {
     document.getElementById('nav-dashboard')?.addEventListener('click', () => { this.leavePlayers(); this.showDashboard(); });
     document.getElementById('nav-settings')?.addEventListener('click', () => { this.leavePlayers(); this.showSettings(); });
   },
 
   renderAccessPill() {
     const pill = document.getElementById('access-pill');
-    if (!pill) return;
+    const nameEl = document.getElementById('user-name');
+    const initialsEl = document.getElementById('user-initials');
     const level = window.getAccessLevel();
+    const name = window.getUserName();
+    if (nameEl) nameEl.textContent = name || 'Welcome';
+    if (initialsEl) initialsEl.textContent = name ? name.split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase() : '·';
+    if (!pill) return;
     pill.className = 'access-pill';
     pill.style.display = 'inline-block';
     if (level === 'reviewer') {
-      const data = window.getReviewerData();
       pill.classList.add('pill-reviewer');
-      pill.textContent = `★ ${data.label.toUpperCase()} ACCESS`;
+      pill.textContent = `★ ${window.getReviewerData().label.toUpperCase()}`;
     } else if (level === 'paid') {
       pill.classList.add('pill-paid');
       pill.textContent = 'FULL ACCESS';
@@ -107,6 +144,82 @@ const ResetApp = {
     } else {
       pill.style.display = 'none';
     }
+  },
+
+  // ---------- Daily break plan ----------
+  // Default (Auto): morning rotates Eyes → Shoulders → Posture daily;
+  // Stand & Breathe alternate between the Midday and Afternoon slots daily.
+  // Custom: any slot can be pinned to a specific break; Auto select resets all.
+
+  getPlanCustom() {
+    return JSON.parse(localStorage.getItem('reset_break_plan') || '{}');
+  },
+
+  defaultPlanForDay(dayIndex) {
+    const morning = ['eyes', 'shoulders', 'posture'][dayIndex % 3];
+    const standFirst = dayIndex % 2 === 0;
+    return {
+      'slot-1': morning,
+      'slot-2': standFirst ? 'stand' : 'breathe',
+      'slot-3': standFirst ? 'breathe' : 'stand'
+    };
+  },
+
+  getTodaysPlan() {
+    const custom = this.getPlanCustom();
+    const def = this.defaultPlanForDay(this.state.dayIndex);
+    return PLAN_SLOTS.map(({ slot, label }) => {
+      const pinned = custom[slot] && window.BREAKS[custom[slot]] ? custom[slot] : null;
+      return {
+        slot, label,
+        time: document.getElementById(slot)?.value || '',
+        breakId: pinned || def[slot],
+        pinned: !!pinned
+      };
+    });
+  },
+
+  bindPlanEditor() {
+    PLAN_SLOTS.forEach(({ planSel, slot }) => {
+      document.getElementById(planSel)?.addEventListener('change', (e) => {
+        const custom = this.getPlanCustom();
+        if (e.target.value === 'auto') delete custom[slot];
+        else custom[slot] = e.target.value;
+        localStorage.setItem('reset_break_plan', JSON.stringify(custom));
+        this.renderPlanEditor();
+        if (this.isDashboardVisible()) this.showDashboard();
+      });
+    });
+    document.getElementById('auto-plan-btn')?.addEventListener('click', () => {
+      localStorage.removeItem('reset_break_plan');
+      this.renderPlanEditor();
+      if (this.isDashboardVisible()) this.showDashboard();
+    });
+  },
+
+  renderPlanEditor() {
+    const custom = this.getPlanCustom();
+    const def = this.defaultPlanForDay(this.state.dayIndex);
+    PLAN_SLOTS.forEach(({ planSel, slot }) => {
+      const sel = document.getElementById(planSel);
+      if (!sel) return;
+      const autoName = window.BREAKS?.[def[slot]]?.name || '—';
+      sel.innerHTML = `<option value="auto">Auto (${autoName})</option>` +
+        Object.values(window.BREAKS || {}).map(b => `<option value="${b.id}">${b.name}</option>`).join('');
+      sel.value = custom[slot] && window.BREAKS[custom[slot]] ? custom[slot] : 'auto';
+    });
+    const hint = document.getElementById('plan-hint');
+    if (hint) {
+      const anyPinned = PLAN_SLOTS.some(({ slot }) => custom[slot]);
+      hint.textContent = anyPinned
+        ? 'Your picks stay until you change them or press Auto select.'
+        : 'Auto rotates your three breaks daily.';
+    }
+  },
+
+  isDashboardVisible() {
+    const v = document.getElementById('view-dashboard');
+    return v && v.style.display !== 'none';
   },
 
   // ---------- Welcome / paywall ----------
@@ -133,54 +246,115 @@ const ResetApp = {
   bindCodeForm(linkId, formId, inputId, errorId) {
     const link = document.getElementById(linkId);
     const form = document.getElementById(formId);
-    if (link && form) {
-      link.addEventListener('click', () => {
-        form.style.display = form.style.display === 'none' ? 'grid' : 'none';
-        document.getElementById(inputId)?.focus();
-      });
-      form.addEventListener('submit', (e) => {
-        e.preventDefault();
-        const result = window.activateAccessCode(document.getElementById(inputId).value);
-        const error = document.getElementById(errorId);
-        if (!result.ok) {
-          if (error) { error.textContent = result.error; error.style.display = 'block'; }
-          return;
-        }
-        if (error) error.style.display = 'none';
-        this.renderAccessPill();
-        this.showDashboard();
-      });
-    }
+    if (!link || !form) return;
+    link.addEventListener('click', () => {
+      form.style.display = form.style.display === 'none' ? 'grid' : 'none';
+      document.getElementById(inputId)?.focus();
+    });
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const result = window.activateAccessCode(document.getElementById(inputId).value);
+      const error = document.getElementById(errorId);
+      if (!result.ok) {
+        if (error) { error.textContent = result.error; error.style.display = 'block'; }
+        return;
+      }
+      if (error) error.style.display = 'none';
+      this.renderAccessPill();
+      this.showDashboard();
+    });
   },
 
   // ---------- Dashboard ----------
 
   bindDashboard() {
+    document.getElementById('hero-start')?.addEventListener('click', () => this.startNextPlannedBreak());
+    document.getElementById('bottom-start-break')?.addEventListener('click', () => this.startNextPlannedBreak());
     document.getElementById('dash-learning-btn')?.addEventListener('click', () => {
       const enabled = document.getElementById('learning-toggle')?.checked;
       if (!enabled) { this.showSettings(); return; }
       this.openLearning();
     });
-    document.getElementById('dash-edit-schedule')?.addEventListener('click', () => this.showSettings());
+    document.getElementById('dash-edit-schedule')?.addEventListener('click', () => {
+      const plan = document.getElementById('plan-editor');
+      if (!plan) return;
+      plan.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      plan.classList.remove('flash');
+      void plan.offsetWidth; // restart animation
+      plan.classList.add('flash');
+    });
+    document.getElementById('dash-add-calendar')?.addEventListener('click', () => this.downloadCalendar());
+    document.getElementById('add-calendar-btn')?.addEventListener('click', () => this.downloadCalendar('calendar-hint'));
+    document.getElementById('side-add-calendar')?.addEventListener('click', () => this.downloadCalendar());
+    document.getElementById('splash-begin')?.addEventListener('click', () => {
+      localStorage.setItem('reset_quote_splash_seen', this.getTodayKey());
+      document.getElementById('quote-splash').style.display = 'none';
+    });
   },
 
   showDashboard() {
-    this.renderGreeting();
+    this.renderHero();
     this.renderQuote();
     this.renderBreakGrid();
+    this.renderTimeline();
     this.renderLearningCard();
-    this.renderScheduleList();
     this.showView('dashboard');
+    this.maybeShowQuoteSplash();
   },
 
-  renderGreeting() {
+  renderHero() {
     const hour = new Date().getHours();
     const timeOfDay = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
     const first = window.getUserFirstName();
     document.getElementById('dash-greeting').textContent = first ? `${timeOfDay}, ${first}.` : `${timeOfDay}.`;
-    document.getElementById('dash-date').textContent = new Date().toLocaleDateString('en-AU', {
+    // undefined locale = follow the device's own language/region and time zone
+    document.getElementById('dash-date').textContent = new Date().toLocaleDateString(undefined, {
       weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'
     });
+
+    const plan = this.getTodaysPlan();
+    const doneToday = this.breaksCompletedToday();
+    const doneCount = plan.filter(s => doneToday.has(s.breakId)).length;
+
+    // Ring: X / 3
+    document.getElementById('hero-ring-count').textContent = `${doneCount} / 3`;
+    const frac = doneCount / 3;
+    document.getElementById('hero-ring-prog').style.strokeDashoffset = String(HERO_RING_CIRC * (1 - frac));
+
+    // Next-reset chip + CTA labels
+    const next = this.nextPlannedBreak();
+    const title = document.getElementById('next-title');
+    const sub = document.getElementById('next-sub');
+    const heroBtn = document.getElementById('hero-start');
+    const bottomSub = document.getElementById('bottom-cta-sub');
+    if (next) {
+      const b = window.BREAKS[next.breakId];
+      title.textContent = `Next reset · ${next.label.replace(' reset', '')} · ${this.formatClock(next.time)}`;
+      sub.textContent = `${b.name} · ${Math.round(b.duration / 60)} minutes`;
+      heroBtn.textContent = 'Start it now';
+      if (bottomSub) bottomSub.textContent = `Up next: ${b.name} — ${Math.round(b.duration / 60)} minutes, guided all the way.`;
+    } else {
+      title.textContent = 'All three resets done';
+      sub.textContent = 'See you tomorrow — or take a bonus break.';
+      heroBtn.textContent = 'Take a bonus break';
+      if (bottomSub) bottomSub.textContent = 'All of today\'s resets are complete. A bonus break never hurts.';
+    }
+  },
+
+  nextPlannedBreak() {
+    const plan = this.getTodaysPlan();
+    const doneToday = this.breaksCompletedToday();
+    const now = new Date();
+    const hhmm = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+    const remaining = plan.filter(s => !doneToday.has(s.breakId));
+    if (remaining.length === 0) return null;
+    // First remaining slot whose time is still ahead; otherwise the earliest remaining
+    return remaining.find(s => s.time >= hhmm) || remaining[0];
+  },
+
+  startNextPlannedBreak() {
+    const next = this.nextPlannedBreak();
+    this.openBreak(next ? next.breakId : 'breathe');
   },
 
   renderQuote() {
@@ -192,23 +366,37 @@ const ResetApp = {
     document.getElementById('dash-quote-author').textContent = `— ${quote.author}`;
   },
 
+  maybeShowQuoteSplash() {
+    if (!window.hasFullAccess?.()) return;
+    if (localStorage.getItem('reset_quote_splash_seen') === this.getTodayKey()) return;
+    const quote = window.getMorningQuote?.(this.state.dayIndex);
+    if (!quote) return;
+    document.getElementById('splash-quote-text').textContent = quote.text;
+    document.getElementById('splash-quote-author').textContent = `— ${quote.author}`;
+    document.getElementById('quote-splash').style.display = 'flex';
+  },
+
   renderBreakGrid() {
     const grid = document.getElementById('dash-break-grid');
     if (!grid) return;
     const doneToday = this.breaksCompletedToday();
+    const plan = this.getTodaysPlan();
     grid.innerHTML = '';
     Object.values(window.BREAKS || {}).forEach(b => {
       const done = doneToday.has(b.id);
+      const slot = plan.find(s => s.breakId === b.id);
       const card = document.createElement('button');
       card.className = 'dash-break-card' + (done ? ' done' : '');
+      const badge = done
+        ? '<span class="done-badge">✓ Done today</span>'
+        : (slot ? `<span class="slot-badge">${slot.label.replace(' reset', '')}</span>` : '');
       card.innerHTML = `
-        ${done ? '<span class="done-badge">✓ Done today</span>' : ''}
+        ${badge}
         <div class="dash-break-icon">${BREAK_ICONS[b.id] || ''}</div>
         <p class="dash-break-name">${b.name}</p>
         <p class="dash-break-desc">${b.description}</p>
         <span class="dash-break-time">${Math.round(b.duration / 60)} min</span>`;
       card.addEventListener('click', () => {
-        // One of each break per day — variety is the point. Reviewers are exempt for testing.
         if (done && !window.isReviewer()) {
           this.showNotice(
             `${b.name} is done for today`,
@@ -225,9 +413,41 @@ const ResetApp = {
   breaksCompletedToday() {
     const history = JSON.parse(localStorage.getItem('reset_break_history') || '[]');
     const today = new Date().toDateString();
-    return new Set(
-      history.filter(h => new Date(h.completedAt).toDateString() === today).map(h => h.breakId)
-    );
+    return new Set(history.filter(h => new Date(h.completedAt).toDateString() === today).map(h => h.breakId));
+  },
+
+  renderTimeline() {
+    const list = document.getElementById('dash-schedule-list');
+    if (!list) return;
+    const doneToday = this.breaksCompletedToday();
+    const now = new Date();
+    const hhmm = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+
+    // Break slots + optional learning entry, sorted by time
+    const items = this.getTodaysPlan().map(s => ({
+      time: s.time,
+      title: `${s.label} — ${window.BREAKS[s.breakId]?.name || ''}`,
+      done: doneToday.has(s.breakId),
+      kind: 'break'
+    }));
+    if (document.getElementById('learning-toggle')?.checked) {
+      const lt = document.getElementById('learning-time-input')?.value || '12:30';
+      const learningDone = this.isLearningDoneToday();
+      items.push({ time: lt, title: 'Lunch Break Learning', done: learningDone, kind: 'learning' });
+    }
+    items.sort((a, b) => a.time.localeCompare(b.time));
+
+    // "up next" = first not-done item at or after now, else first not-done
+    const pending = items.filter(i => !i.done);
+    const nextItem = pending.find(i => i.time >= hhmm) || pending[0] || null;
+
+    list.innerHTML = items.map(i => {
+      const cls = i.done ? 'done' : (i === nextItem ? 'now' : '');
+      const status = i.done ? 'completed'
+        : (i === nextItem ? 'up next'
+          : (i.kind === 'learning' ? 'episode ready' : ''));
+      return `<li class="${cls}"><span class="nd"></span><div class="tt">${i.title}</div><div class="ts">${this.formatClock(i.time)}${status ? ' · ' + status : ''}</div></li>`;
+    }).join('');
   },
 
   renderLearningCard() {
@@ -236,7 +456,6 @@ const ResetApp = {
     const teaser = document.getElementById('learning-teaser');
     const btn = document.getElementById('dash-learning-btn');
     if (!tag || !teaser || !btn) return;
-
     if (!enabled) {
       tag.textContent = 'Off';
       tag.className = 'tag tag-soft';
@@ -257,22 +476,27 @@ const ResetApp = {
     }
   },
 
-  renderScheduleList() {
-    const list = document.getElementById('dash-schedule-list');
-    if (!list) return;
-    const labels = [['slot-1', 'Morning reset'], ['slot-2', 'Midday reset'], ['slot-3', 'Afternoon reset']];
-    list.innerHTML = labels.map(([id, label]) => {
-      const value = document.getElementById(id)?.value || '—';
-      return `<li><span>${label}</span><span class="sched-time">${this.formatClock(value)}</span></li>`;
-    }).join('');
-  },
-
   formatClock(hhmm) {
     if (!hhmm || !hhmm.includes(':')) return hhmm;
     const [h, m] = hhmm.split(':').map(Number);
-    const ampm = h >= 12 ? 'pm' : 'am';
-    const hr = h % 12 === 0 ? 12 : h % 12;
-    return `${hr}:${String(m).padStart(2, '0')} ${ampm}`;
+    // Display in the device's own clock format (24h or 12h)
+    const d = new Date();
+    d.setHours(h, m, 0, 0);
+    return d.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
+  },
+
+  // Download an .ics of today's plan as recurring daily reminders. The user's own
+  // calendar then fires the alerts on every device, even when the app is closed.
+  downloadCalendar(hintId) {
+    const slots = this.getTodaysPlan().map(s => ({ time: s.time, label: s.label, breakId: s.breakId }));
+    window.CalendarReminders?.download(slots);
+    const times = slots.map(s => this.formatClock(s.time)).join(', ');
+    if (hintId) {
+      const hint = document.getElementById(hintId);
+      if (hint) { hint.textContent = `Saved “the-daily-reset.ics”. Open it to add your ${times} reminders — they repeat every day.`; hint.style.display = 'block'; }
+    } else {
+      this.showNotice('Calendar file saved', `Open the downloaded file “the-daily-reset.ics” to add your daily reminders (${times}). They repeat every day and will alert you even when the app is closed.`);
+    }
   },
 
   // ---------- Break player ----------
@@ -295,7 +519,7 @@ const ResetApp = {
     this.state.currentStepIndex = 0;
     this.state.secondsRemaining = breakDef.steps[0].duration;
     this.state.isPaused = false;
-    this.state.midpointFired = false;
+    this.state.stepAudioMode = null;
 
     document.getElementById('player-title').textContent = breakDef.name;
     document.getElementById('player-subtitle').textContent = breakDef.description;
@@ -335,7 +559,6 @@ const ResetApp = {
     if (this.state.currentStepIndex >= this.state.currentBreak.steps.length) {
       this.state.currentStepIndex = 0;
       this.state.secondsRemaining = this.state.currentBreak.steps[0].duration;
-      this.state.midpointFired = false;
       document.getElementById('player-quote').style.display = 'none';
       this.renderStepDots();
     }
@@ -360,11 +583,14 @@ const ResetApp = {
     const step = this.state.currentBreak?.steps?.[this.state.currentStepIndex];
     const total = step?.duration || 0;
 
-    // Midpoint "keep going" cue — once per step, longer steps only
-    if (!this.state.midpointFired && total >= 25 && this.state.secondsRemaining === Math.floor(total / 2)) {
-      this.state.midpointFired = true;
-      const narrationOn = document.getElementById('narration-toggle')?.checked;
-      if (narrationOn !== false) window.AudioEngine?.narrate(window.AudioEngine.midpointCueSrc(), 'Keep going.');
+    // Fire timed narration cues (TTS mode only; recordings are one continuous clip)
+    if (this.state.stepAudioMode === 'tts' && step?.cues) {
+      const elapsed = total - this.state.secondsRemaining;
+      const cue = step.cues.find(c => c.t === elapsed);
+      if (cue) {
+        const narrationOn = document.getElementById('narration-toggle')?.checked;
+        if (narrationOn !== false) window.AudioEngine?.narrate(null, cue.say, null, this.cueRate(cue));
+      }
     }
 
     if (this.state.secondsRemaining <= 0) { this.nextStep(); return; }
@@ -374,7 +600,6 @@ const ResetApp = {
   nextStep() {
     if (!this.state.running) return;
     this.state.currentStepIndex += 1;
-    this.state.midpointFired = false;
     if (this.state.currentStepIndex >= this.state.currentBreak.steps.length) {
       this.completeBreak();
       return;
@@ -403,13 +628,28 @@ const ResetApp = {
     document.getElementById('ring-progress').style.strokeDashoffset = String(RING_CIRCUMFERENCE * (1 - frac));
   },
 
+  // 'count' cues use the crisp counting pace; everything else the slow default.
+  cueRate(cue) {
+    if (cue && cue.rate === 'count') return window.VoiceSystem?.countRate;
+    return undefined;
+  },
+
   narrateStep() {
     const step = this.state.currentBreak?.steps?.[this.state.currentStepIndex];
     if (!step) return;
     const narrationOn = document.getElementById('narration-toggle')?.checked;
-    if (narrationOn === false) return;
+    if (narrationOn === false) { this.state.stepAudioMode = null; return; }
+
     const src = window.AudioEngine?.breakStepSrc(this.state.currentBreak.id, this.state.currentStepIndex);
-    window.AudioEngine?.narrate(src, step.narration || step.instruction);
+    if (window.AudioEngine?.hasRecording(src)) {
+      this.state.stepAudioMode = 'recorded';
+      window.AudioEngine.narrate(src, null);
+    } else {
+      this.state.stepAudioMode = 'tts';
+      const first = step.cues?.[0];
+      window.AudioEngine?.narrate(null, first ? first.say : (step.narration || step.instruction), null, first ? this.cueRate(first) : undefined);
+    }
+
     const sourceEl = document.getElementById('player-audio-source');
     if (sourceEl) {
       sourceEl.style.display = 'block';
@@ -522,7 +762,6 @@ const ResetApp = {
       ? "That's today's episode done. A new one arrives tomorrow — curiosity is part of the design."
       : `Takeaway: ${episode.takeaway}`;
 
-    // Reviewer tools: episode browser + skip-ahead
     const tools = document.getElementById('learning-reviewer-tools');
     if (tools) {
       tools.style.display = reviewer ? 'block' : 'none';
@@ -656,7 +895,7 @@ const ResetApp = {
       `${this.formatTime(this.state.learningElapsed)} / ${this.formatTime(Math.round(duration))}`;
   },
 
-  // ---------- Topic picker ----------
+  // ---------- Topic picker / modals ----------
 
   bindModals() {
     document.getElementById('topic-close')?.addEventListener('click', () => this.closeTopicPicker());
@@ -723,7 +962,10 @@ const ResetApp = {
     document.getElementById('settings-back')?.addEventListener('click', () => this.showDashboard());
 
     ['slot-1', 'slot-2', 'slot-3', 'learning-time-input'].forEach(id => {
-      document.getElementById(id)?.addEventListener('change', () => this.saveSettings());
+      document.getElementById(id)?.addEventListener('change', () => {
+        this.saveSettings();
+        if (this.isDashboardVisible()) { this.renderHero(); this.renderTimeline(); }
+      });
     });
 
     document.getElementById('narration-toggle')?.addEventListener('change', (e) => {
@@ -763,7 +1005,8 @@ const ResetApp = {
 
     document.getElementById('reset-data-btn')?.addEventListener('click', () => {
       if (!confirm('This clears your schedule, history, and preferences from this browser. Continue?')) return;
-      ['reset_trial', 'reset_full_access', 'reset_settings', 'reset_learning_state', 'reset_voice_settings', 'reset_break_history', 'reset_access_code']
+      ['reset_trial', 'reset_full_access', 'reset_settings', 'reset_learning_state', 'reset_voice_settings',
+       'reset_break_history', 'reset_access_code', 'reset_break_plan', 'reset_reminders_fired', 'reset_quote_splash_seen']
         .forEach(k => localStorage.removeItem(k));
       window.location.reload();
     });
@@ -781,7 +1024,7 @@ const ResetApp = {
     const trial = window.getTrialData();
     const level = window.getAccessLevel();
     const accessText = {
-      reviewer: `Reviewer — permanent, unrestricted`,
+      reviewer: 'Reviewer — permanent, unrestricted',
       paid: 'Full Access',
       trial: `Free trial — ${window.trialDaysRemaining()} day(s) left`,
       expired: 'Trial ended',
@@ -812,8 +1055,6 @@ const ResetApp = {
       else el.value = value;
     });
     this.toggleLearningConfig();
-
-    // Sync audio engine with saved narration + voice preferences
     const narrationOn = document.getElementById('narration-toggle')?.checked;
     window.AudioEngine?.setEnabled(narrationOn !== false);
     const gender = window.AudioEngine?.gender || 'female';
@@ -831,16 +1072,18 @@ const ResetApp = {
     localStorage.setItem('reset_settings', JSON.stringify(settings));
   },
 
-  // ---------- Break-time alerts ----------
+  // ---------- Break-time alerts + day rollover ----------
 
   bindReminders() {
     document.getElementById('reminder-toggle')?.addEventListener('change', (e) => {
       if (e.target.checked) this.requestNotifyPermission();
       this.saveSettings();
     });
-    // Browsers only allow the permission prompt on a user gesture — piggyback on the first click
+    // Permission prompts need a user gesture; also wake the speech engine so
+    // the first word of any break is never clipped.
     document.addEventListener('pointerdown', () => {
       if (document.getElementById('reminder-toggle')?.checked) this.requestNotifyPermission();
+      window.VoiceSystem?.warmUp();
     }, { once: true });
   },
 
@@ -855,33 +1098,47 @@ const ResetApp = {
   },
 
   checkReminders() {
+    // Day rollover: if the app stays open overnight, refresh everything for the
+    // new day — new plan, new quote (with splash), badges cleared, reminders reset.
+    const tk = this.getTodayKey();
+    if (tk !== this.state.dayKey) {
+      this.state.dayKey = tk;
+      this.state.dayIndex = computeDayIndex();
+      this.renderPlanEditor();
+      if (this.isDashboardVisible()) this.showDashboard();
+    }
+
     if (!window.hasFullAccess?.()) return;
     if (document.getElementById('reminder-toggle')?.checked === false) return;
-    if (this.state.running) return; // already mid-break
+    if (this.state.running) return;
 
     const now = new Date();
     const hhmm = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
-    const key = this.getTodayKey();
     const stored = JSON.parse(localStorage.getItem('reset_reminders_fired') || '{}');
-    const firedToday = stored[key] || [];
+    const firedToday = stored[tk] || [];
 
-    [['slot-1', 'Morning reset'], ['slot-2', 'Midday reset'], ['slot-3', 'Afternoon reset']].forEach(([id, label]) => {
-      const slotTime = document.getElementById(id)?.value;
-      if (slotTime === hhmm && !firedToday.includes(id)) {
-        firedToday.push(id);
-        localStorage.setItem('reset_reminders_fired', JSON.stringify({ [key]: firedToday }));
-        this.fireReminder(label);
+    this.getTodaysPlan().forEach(({ slot, label, time, breakId }) => {
+      if (time === hhmm && !firedToday.includes(slot)) {
+        firedToday.push(slot);
+        localStorage.setItem('reset_reminders_fired', JSON.stringify({ [tk]: firedToday }));
+        this.fireReminder(label, breakId);
       }
     });
   },
 
-  fireReminder(label) {
-    const message = `${label} — three minutes with yourself. Pick a break.`;
+  fireReminder(label, breakId) {
+    const b = window.BREAKS?.[breakId];
+    const message = b
+      ? `${label} — ${b.name}, ${Math.round(b.duration / 60)} minutes. Time for your reset.`
+      : `${label} — three minutes with yourself. Time for your reset.`;
     if ('Notification' in window && Notification.permission === 'granted') {
       const n = new Notification('The Daily Reset', { body: message });
-      n.onclick = () => { window.focus(); this.leavePlayers(); this.showDashboard(); n.close(); };
+      n.onclick = () => { window.focus(); this.leavePlayers(); if (b) this.openBreak(breakId); else this.showDashboard(); n.close(); };
     }
-    this.showToast('Time for your reset', message, 'Pick a break', () => { this.leavePlayers(); this.showDashboard(); });
+    this.showToast('Time for your reset', message, b ? `Start ${b.name}` : 'Pick a break', () => {
+      this.leavePlayers();
+      if (b) this.openBreak(breakId); else this.showDashboard();
+    });
   },
 
   showToast(title, message, actionLabel, action) {

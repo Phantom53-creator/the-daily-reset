@@ -1,12 +1,71 @@
 // breaks.js — The Daily Reset Break Definitions
-// 5 break types, each with timed steps, instructions, and narration scripts
-// Narration is text-only for MVP; will be replaced by audio file paths
+// 5 break types. Each step has:
+//   - duration    (seconds; drives the on-screen timer)
+//   - instruction (short on-screen text)
+//   - cues        [{ t, say, rate }] — spoken guidance placed across the WHOLE step.
+//
+// TWO PACES, PLATFORM-WIDE:
+//   rate:'count'  → every spoken NUMBER (holds, reps, breathing) — one per second.
+//   (no rate)     → general guidance at the calm default rate.
+//
+// NO DEAD AIR: each general line is written with enough words to FILL the
+// seconds allotted to it (~1.5 words/sec at the slow speaking rate), so the
+// voice talks through the gap instead of finishing early and going silent.
+//
+// `narration` (the studio recording script) is auto-derived from the cues.
+
+const COUNT_WORDS = ['one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten'];
+
+// Fluent per-step timeline builder.
+function cues(duration) {
+  let t = 0;
+  const list = [];
+  const api = {
+    line(text, holdSeconds) {
+      if (t < duration) list.push({ t, say: text });
+      t += holdSeconds;
+      return api;
+    },
+    countdown(from, opts) {
+      opts = opts || {};
+      if (opts.lead && t < duration) { list.push({ t, say: opts.lead, rate: 'count' }); t += 1; }
+      for (let n = from; n >= 1; n--) {
+        if (t < duration) list.push({ t, say: COUNT_WORDS[n - 1], rate: 'count' });
+        t += 1;
+      }
+      return api;
+    },
+    countup(to, opts) {
+      opts = opts || {};
+      if (opts.lead && t < duration) { list.push({ t, say: opts.lead, rate: 'count' }); t += 1; }
+      for (let n = 1; n <= to; n++) {
+        if (t < duration) list.push({ t, say: COUNT_WORDS[n - 1], rate: 'count' });
+        t += 1;
+      }
+      return api;
+    },
+    build() { return list; }
+  };
+  return api;
+}
+
+// Box-breathing: a phase label or count word EVERY second for the whole cycle.
+function boxBreathCues(duration) {
+  const phaseLabel = ['Breathe in', 'Hold', 'Breathe out', 'Hold'];
+  const list = [];
+  for (let t = 0; t < duration; t++) {
+    const posInPhase = t % 4;
+    const phase = Math.floor(t / 4) % 4;
+    list.push({ t, say: posInPhase === 0 ? phaseLabel[phase] : COUNT_WORDS[posInPhase - 1], rate: 'count' });
+  }
+  return list;
+}
 
 const BREAKS = {
   eyes: {
     id: 'eyes',
     name: 'Eyes',
-    duration: 180, // 3 minutes total
+    duration: 180,
     icon: '👁',
     description: 'The 20-20-20 rule and palming technique to reduce digital eye strain.',
     source: '[S2] American Optometric Association',
@@ -15,40 +74,63 @@ const BREAKS = {
       {
         duration: 15,
         instruction: 'Sit comfortably. Look straight ahead. Notice any tension around your eyes.',
-        narration: 'Sit comfortably and look straight ahead. Just notice any tension around your eyes — the small muscles that have been locked in focus for the last hour or two.'
+        cues: cues(15)
+          .line('Sit comfortably in your chair, and look straight ahead of you.', 6)
+          .line('Notice any tension around your eyes, in those small hardworking muscles.', 6)
+          .line('Let them soften now.', 3)
+          .build()
       },
       {
         duration: 20,
         instruction: 'Look at something 20 feet away (or as far as possible) for 20 seconds.',
-        narration: 'Now look at something 20 feet away — or as far as your space allows. Hold for 20 seconds. Let your eye muscles fully relax into the distance.'
+        cues: cues(20)
+          .line('Find something far away — across the room, or out a window.', 6)
+          .line('Rest your eyes on it, and let your focus go completely soft.', 7)
+          .line('Keep gazing into the distance.', 4)
+          .line('A few seconds more.', 3)
+          .build()
       },
       {
         duration: 30,
         instruction: 'Close your eyes. Place your palms gently over them without pressure. Breathe slowly.',
-        narration: 'Close your eyes. Cup your palms gently over them — no pressure, just blocking the light. Breathe slowly. Let the warmth of your hands relax the muscles around your eyes.'
+        cues: cues(30)
+          .line('Now close your eyes gently.', 4)
+          .line('Cup your palms over them softly — no pressure, just darkness.', 7)
+          .line('Feel the warmth of your hands relaxing the muscles around your eyes.', 7)
+          .line('Breathe slowly. In through your nose... and slowly out again.', 7)
+          .line('Stay in the dark a moment longer.', 5)
+          .build()
       },
       {
         duration: 30,
         instruction: 'With eyes still closed, look up, down, left, right. Repeat 3 times slowly.',
-        narration: 'Keeping your eyes closed, look up, then down, then left, then right. Slowly. Do this three times. This keeps the muscles that control eye movement active and mobile.'
+        cues: cues(30)
+          .line('Keep your eyes closed now.', 4)
+          .line('Slowly look up... and then down.', 6)
+          .line("Now look left... and then right. That's round one.", 7)
+          .line('Round two — up... down... left... and right.', 7)
+          .line('Last round, nice and slow. Then rest.', 6)
+          .build()
       },
       {
         duration: 25,
         instruction: 'Open your eyes. Blink slowly 10 times. Notice the difference.',
-        narration: 'Open your eyes. Blink slowly ten times. Notice the difference — the clarity, the moisture, the release of tension.'
+        cues: cues(25)
+          .line('Gently open your eyes again.', 4)
+          .countup(10, { lead: 'Blink slowly.' })
+          .line('Notice the difference in how your eyes feel.', 6)
+          .line('Clarity. Moisture. Ease.', 4)
+          .build()
       }
     ],
-    closingQuote: {
-      useFromLibrary: true,
-      category: 'focus'
-    }
+    closingQuote: { useFromLibrary: true, category: 'focus' }
   },
 
   shoulders: {
     id: 'shoulders',
     name: 'Shoulders',
-    duration: 240, // 4 minutes
-    icon: 'Shoulders',
+    duration: 240,
+    icon: '👐',
     description: 'Seated tension release for trapezius and neck. Reverses forward-head strain.',
     source: '[S3] Hansraj, Surgical Technology International (2014)',
     isFree: false,
@@ -56,49 +138,92 @@ const BREAKS = {
       {
         duration: 20,
         instruction: 'Sit tall. Feet flat. Let your arms hang loose. Notice where you hold tension.',
-        narration: 'Sit tall, feet flat on the floor. Let your arms hang loose. Notice where you hold tension — most of us carry it in the shoulders and neck without realising.'
+        cues: cues(20)
+          .line('Sit tall in your chair, with both feet flat on the floor.', 6)
+          .line('Let your arms hang loose and heavy by your sides.', 6)
+          .line("Notice where you're holding tension.", 4)
+          .line("We'll release it piece by piece.", 4)
+          .build()
       },
       {
         duration: 30,
         instruction: 'Lift shoulders toward ears. Hold 5 seconds. Drop suddenly. Repeat 3 times.',
-        narration: 'Lift both shoulders up toward your ears. Hold for five seconds — really feel the tension build. Then drop them suddenly. Let them fall. Do this three times. The contrast teaches your muscles what "relaxed" actually feels like.'
+        cues: cues(30)
+          .line('Lift both shoulders up toward your ears, and squeeze.', 5)
+          .countdown(5, { lead: 'Hold' })
+          .line('And drop. Let go.', 2)
+          .line('Again.', 2)
+          .countdown(5, { lead: 'Hold' })
+          .line('And drop.', 2)
+          .line('Last one.', 1)
+          .countdown(5, { lead: 'Hold' })
+          .build()
       },
       {
         duration: 40,
         instruction: 'Roll shoulders backward slowly — 5 full rotations. Then forward — 5 rotations.',
-        narration: 'Now roll your shoulders backward slowly. Five full rotations, making the circle as large as you can. Then reverse — five rotations forward. This mobilises the shoulder joint and releases the trapezius.'
+        cues: cues(40)
+          .line('Roll your shoulders backward.', 3)
+          .countup(5)
+          .line('Now forward.', 2)
+          .countup(5)
+          .line('Keep the circles big and slow, as large as they can go.', 8)
+          .line('Feel the trapezius muscles loosening with every single slow rotation you make.', 8)
+          .line('Let the last of the stiffness go. Your shoulders are waking up.', 9)
+          .build()
       },
       {
         duration: 30,
-        instruction: 'Tilt head right (ear toward shoulder). Hold 10 sec. Switch sides. Repeat 2x each side.',
-        narration: 'Tilt your head to the right — ear toward shoulder, not turning. Hold for ten seconds. Feel the stretch along the left side of your neck. Switch sides. Do this twice on each side.'
+        instruction: 'Tilt head right (ear toward shoulder). Hold 10 sec. Switch sides.',
+        cues: cues(30)
+          .line('Tilt your head to the right.', 3)
+          .countdown(10, { lead: 'Hold' })
+          .line('Now tilt to the left.', 3)
+          .countdown(10, { lead: 'Hold' })
+          .line('Back to center.', 2)
+          .build()
       },
       {
         duration: 40,
-        instruction: 'Interlace fingers behind head. Gently press head back into hands. Hold 10 sec. Release. Repeat 3x.',
-        narration: 'Interlace your fingers behind your head. Gently press the back of your head into your hands — your hands resist. Hold for ten seconds. This strengthens the deep neck flexors that counter forward-head posture. Release. Repeat three times.'
+        instruction: 'Interlace fingers behind head. Gently press head back into hands. Hold 10 sec. Release. Repeat 2 times.',
+        cues: cues(40)
+          .line('Press the back of your head into your hands.', 5)
+          .countdown(10, { lead: 'Hold' })
+          .line('And release. Rest a moment.', 3)
+          .line('Once more.', 2)
+          .countdown(10, { lead: 'Hold' })
+          .line('And release completely.', 3)
+          .line('Feel how much lighter your neck is.', 5)
+          .build()
       },
       {
         duration: 20,
         instruction: 'Sit tall. Roll shoulders back and down. Let them settle. Breathe.',
-        narration: 'Sit tall. Roll your shoulders back and down. Let them settle into a natural position. Take a breath. Notice the space between your ears and shoulders — that space is your tension gauge.'
+        cues: cues(20)
+          .line('Now sit tall once again.', 4)
+          .line('Roll your shoulders back and down.', 5)
+          .line('Let them settle into their natural place.', 5)
+          .line('Notice the space between your ears and shoulders.', 6)
+          .build()
       },
       {
         duration: 20,
         instruction: 'Final breath. Inhale through nose, exhale through mouth. Ready to continue.',
-        narration: 'One final breath. Inhale through the nose, exhale through the mouth. Your shoulders are lower, your neck is longer. Ready to continue.'
+        cues: cues(20)
+          .line('One final breath together now.', 4)
+          .line('Breathe in slowly through your nose.', 5)
+          .line('And let it out through your mouth.', 5)
+          .line('Shoulders lower, neck longer. Ready to continue your day.', 6)
+          .build()
       }
     ],
-    closingQuote: {
-      useFromLibrary: true,
-      category: 'tension'
-    }
+    closingQuote: { useFromLibrary: true, category: 'tension' }
   },
 
   stand: {
     id: 'stand',
     name: 'Stand',
-    duration: 120, // 2 minutes
+    duration: 120,
     icon: '🧍',
     description: 'Two-minute standing reset with hip extension. Restores circulation and alertness.',
     source: '[S4] Harvard Health / sedentary behaviour research',
@@ -107,44 +232,71 @@ const BREAKS = {
       {
         duration: 15,
         instruction: 'Stand up. Plant feet hip-width apart. Feel the floor.',
-        narration: 'Stand up. Plant your feet hip-width apart. Feel the floor — the solid ground under you. You\'ve been sitting, and your body needs to remember what standing feels like.'
+        cues: cues(15)
+          .line('Stand up out of your chair.', 4)
+          .line('Plant your feet hip-width apart.', 4)
+          .line('Feel the solid floor beneath you.', 4)
+          .line('Settle your weight evenly.', 3)
+          .build()
       },
       {
         duration: 20,
-        instruction: 'Rise onto toes, hold 3 sec, lower. Repeat 5 times.',
-        narration: 'Rise up onto your toes. Hold for three seconds. Lower down. Do this five times. This pumps blood up from your calves and wakes up your circulatory system.'
+        instruction: 'Rise onto toes, lower. Repeat 5 times, following the count.',
+        cues: cues(20)
+          .line('Rise up onto your toes.', 4)
+          .countup(5, { lead: 'Go.' })
+          .line('And again at your own pace — up and down, pumping blood up from your calves.', 10)
+          .build()
       },
       {
         duration: 25,
         instruction: 'Step one foot back into a lunge. Feel the hip stretch. Hold 10 sec. Switch sides.',
-        narration: 'Step one foot back into a standing lunge. Feel the stretch in the front of your hip — the hip flexor that shortens when you sit. Hold for ten seconds. Switch sides. This is the stretch your body needs most after prolonged sitting.'
+        cues: cues(25)
+          .line('Step one foot back.', 2)
+          .countdown(10, { lead: 'Hold' })
+          .line('Switch.', 1)
+          .countdown(10, { lead: 'Hold' })
+          .build()
       },
       {
         duration: 20,
         instruction: 'Stand tall. Reach both arms overhead. Stretch upward. Hold 10 sec.',
-        narration: 'Stand tall. Reach both arms overhead. Stretch upward — like you\'re trying to touch the ceiling. Hold for ten seconds. This opens up the ribcage and decompresses the spine.'
+        cues: cues(20)
+          .line('Reach both arms up overhead.', 4)
+          .countdown(10, { lead: 'Hold' })
+          .line('And slowly lower your arms.', 5)
+          .build()
       },
       {
         duration: 20,
         instruction: 'Arms down. Shake out hands and arms. Roll shoulders 3 times.',
-        narration: 'Arms down. Shake out your hands and arms — loosely, like they\'re made of rubber. Roll your shoulders three times. Let the last of the stagnant energy go.'
+        cues: cues(20)
+          .line('Shake out your hands and arms.', 5)
+          .line('Loose and floppy, like rubber.', 5)
+          .countup(3, { lead: 'Roll your shoulders.' })
+          .line('And let everything settle.', 6)
+          .build()
       },
       {
         duration: 20,
         instruction: 'Stand still. Breathe deeply 3 times. Notice your alertness.',
-        narration: 'Stand still. Take three deep breaths. Notice the difference — the alertness, the circulation, the energy. This is what two minutes of standing does.'
+        cues: cues(20)
+          .line('Stand still now.', 3)
+          .line('Breathe in deeply.', 3)
+          .line('And breathe out.', 3)
+          .line('Again — breathe in.', 3)
+          .line('And out.', 3)
+          .line("Notice the alertness. That's two minutes well spent.", 5)
+          .build()
       }
     ],
-    closingQuote: {
-      useFromLibrary: true,
-      category: 'movement'
-    }
+    closingQuote: { useFromLibrary: true, category: 'movement' }
   },
 
   breathe: {
     id: 'breathe',
     name: 'Breathe',
-    duration: 240, // 4 minutes
+    duration: 240,
     icon: '🌬',
     description: 'Box breathing 4-4-4-4. Used by Navy SEALs. Validated for acute stress reduction.',
     source: '[S5] Jerath et al., Medical Hypotheses (2006)',
@@ -153,44 +305,35 @@ const BREAKS = {
       {
         duration: 20,
         instruction: 'Sit comfortably. Feet flat. Hands resting on thighs. Close your eyes if comfortable.',
-        narration: 'Sit comfortably. Feet flat on the floor. Hands resting on your thighs. Close your eyes if you\'re comfortable doing so. This is box breathing — four counts in, four counts hold, four counts out, four counts hold.'
+        cues: cues(20)
+          .line('Sit comfortably and settle in.', 4)
+          .line('Feet flat on the floor, hands resting on your thighs.', 6)
+          .line('Close your eyes if that feels comfortable.', 6)
+          .line('Here we go.', 4)
+          .build()
       },
-      {
-        duration: 40,
-        instruction: 'CYCLE 1: Inhale 4 sec → Hold 4 sec → Exhale 4 sec → Hold 4 sec',
-        narration: 'Cycle one. Inhale for four — one, two, three, four. Hold for four — one, two, three, four. Exhale for four — one, two, three, four. Hold for four — one, two, three, four.'
-      },
-      {
-        duration: 40,
-        instruction: 'CYCLE 2: Same rhythm. Let the breath slow naturally.',
-        narration: 'Cycle two. Same rhythm. Inhale four — one, two, three, four. Hold four — one, two, three, four. Exhale four — one, two, three, four. Hold four — one, two, three, four. Let the breath slow naturally if it wants to.'
-      },
-      {
-        duration: 40,
-        instruction: 'CYCLE 3: Notice your heart rate. It should be slowing.',
-        narration: 'Cycle three. Inhale four — one, two, three, four. Hold four — one, two, three, four. Exhale four — one, two, three, four. Hold four — one, two, three, four. Notice your heart rate — it should be slowing down. That\'s your parasympathetic nervous system activating.'
-      },
-      {
-        duration: 40,
-        instruction: 'CYCLE 4: Smooth, even breaths. The box is steady.',
-        narration: 'Cycle four. Inhale four — one, two, three, four. Hold four — one, two, three, four. Exhale four — one, two, three, four. Hold four — one, two, three, four. The box is steady. You are steady.'
-      },
+      { duration: 40, instruction: 'Follow the count. Inhale 4 → Hold 4 → Exhale 4 → Hold 4.', cues: boxBreathCues(40) },
+      { duration: 40, instruction: 'Same steady rhythm. Let the breath slow naturally.', cues: boxBreathCues(40) },
+      { duration: 40, instruction: 'Notice your heart rate. It should be slowing.', cues: boxBreathCues(40) },
+      { duration: 40, instruction: 'Smooth, even breaths. The box is steady.', cues: boxBreathCues(40) },
       {
         duration: 20,
         instruction: 'Return to natural breathing. Open eyes. Notice the calm.',
-        narration: 'Return to your natural breathing rhythm. Open your eyes. Notice the calm — the slower heart rate, the clearer head. This is what four minutes of structured breathing does.'
+        cues: cues(20)
+          .line('Let your breathing return to its own natural rhythm.', 6)
+          .line('Gently open your eyes.', 5)
+          .line("Notice the calm you've created.", 5)
+          .line('Carry it into your day.', 4)
+          .build()
       }
     ],
-    closingQuote: {
-      useFromLibrary: true,
-      category: 'calm'
-    }
+    closingQuote: { useFromLibrary: true, category: 'calm' }
   },
 
   posture: {
     id: 'posture',
     name: 'Posture',
-    duration: 180, // 3 minutes
+    duration: 180,
     icon: '🪑',
     description: 'Forward-head correction with chin tucks and scapular retraction. Opens the diaphragm.',
     source: '[S6] Kolar et al., Clinical Biomechanics (2012)',
@@ -199,42 +342,89 @@ const BREAKS = {
       {
         duration: 20,
         instruction: 'Sit tall. Feet flat. Notice your head position — is it forward?',
-        narration: 'Sit tall. Feet flat on the floor. Notice your head position — is it drifting forward toward the screen? That forward position adds up to 27 kilograms of strain to your neck. Let\'s fix it.'
+        cues: cues(20)
+          .line('Sit tall, with both feet flat on the floor.', 5)
+          .line('Notice the position of your head right now.', 5)
+          .line('Is it drifting forward toward the screen?', 5)
+          .line("Let's bring it back home.", 5)
+          .build()
       },
       {
         duration: 30,
         instruction: 'Chin tuck: Pull chin straight back (make a double chin). Hold 5 sec. Release. Repeat 5 times.',
-        narration: 'Chin tuck. Pull your chin straight back — not down, not up, straight back. You\'ll make a bit of a double chin. That\'s correct. Hold for five seconds. Release. Repeat five times. This strengthens the deep neck flexors that hold your head up.'
+        cues: cues(30)
+          .line('Chin tucks.', 2)
+          .countdown(5, { lead: 'Hold' })
+          .countdown(5)
+          .countdown(5, { lead: 'Again' })
+          .countdown(5)
+          .countdown(5)
+          .line('Release.', 1)
+          .build()
       },
       {
         duration: 30,
         instruction: 'Scapular retraction: Squeeze shoulder blades together. Hold 5 sec. Release. Repeat 5 times.',
-        narration: 'Scapular retraction. Squeeze your shoulder blades together — imagine holding a pencil between them. Hold for five seconds. Release. Repeat five times. This reverses the rounded-shoulder pattern from hours of typing.'
+        cues: cues(30)
+          .line('Squeeze your shoulder blades together.', 3)
+          .countdown(5, { lead: 'Hold' })
+          .countdown(5)
+          .countdown(5, { lead: 'Again' })
+          .countdown(5)
+          .countdown(5)
+          .build()
       },
       {
         duration: 30,
         instruction: 'Wall angel: Sit with back against chair. Arms out to sides, slide up and down 5 times.',
-        narration: 'Wall angel. Sit with your back flat against the chair back. Arms out to the sides, elbows bent. Slowly slide your arms up and down — like making a snow angel while seated. Five times. This mobilises the thoracic spine and opens the chest.'
+        cues: cues(30)
+          .line('Sit back against your chair, arms out to the sides.', 5)
+          .line('Elbows bent, like a goalpost.', 5)
+          .countup(5, { lead: 'Go.' })
+          .line('Nice and slow, keep them moving.', 6)
+          .line('One more set.', 3)
+          .countup(5)
+          .build()
       },
       {
         duration: 30,
         instruction: 'Sit tall. Place one hand on belly. Breathe into belly 5 times (diaphragmatic breathing).',
-        narration: 'Sit tall. Place one hand on your belly. Breathe into your belly — feel it rise with each inhale and fall with each exhale. Five breaths. This is diaphragmatic breathing, and it\'s only possible when your posture is upright. Slouched posture compresses the diaphragm by up to 30 percent.'
+        cues: cues(30)
+          .line('Rest one hand gently on your belly.', 5)
+          .line('Breathe in.', 3)
+          .line('And out.', 3)
+          .line('Again — in.', 3)
+          .line('And out.', 3)
+          .line('Keep it going — in.', 4)
+          .line('And out.', 3)
+          .line('Two more slow belly breaths on your own.', 6)
+          .build()
       },
       {
         duration: 20,
         instruction: 'Sit tall. Roll shoulders back and down. Settle. Notice the openness.',
-        narration: 'Sit tall. Roll your shoulders back and down. Let them settle. Notice the openness — the space in your chest, the ease of breathing. This is what your body feels like when it\'s stacked correctly.'
+        cues: cues(20)
+          .line('Sit tall again.', 3)
+          .line('Roll your shoulders back and down.', 5)
+          .line('Let everything settle.', 4)
+          .line('Notice the openness in your chest.', 4)
+          .line('Take this posture with you.', 4)
+          .build()
       }
     ],
-    closingQuote: {
-      useFromLibrary: true,
-      category: 'posture'
-    }
+    closingQuote: { useFromLibrary: true, category: 'posture' }
   }
 };
 
-// Export for use by app.js
+// Derive `narration` for each step from its cues (studio recording script).
+Object.values(BREAKS).forEach(b => {
+  b.steps.forEach(step => {
+    if (step.cues && !step.narration) {
+      step.narration = step.cues.map(c => c.say).join(' ');
+    }
+  });
+});
+
 if (typeof window !== 'undefined') {
   window.BREAKS = BREAKS;
 }
