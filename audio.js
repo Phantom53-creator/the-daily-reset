@@ -43,8 +43,18 @@ const AudioEngine = {
     return `audio/breaks/${breakId}-step${stepIndex + 1}-${this.gender}.mp3`;
   },
 
+  // Learning episodes are each recorded in exactly one fixed voice (half the
+  // library is Marian, half is Richard) — this is a content decision, not a
+  // user preference, so it deliberately ignores `this.gender`. Using the
+  // Voice Selection toggle's gender here was the bug: switching it away from
+  // an episode's actual recorded gender made hasRecording() miss the file and
+  // silently fall back to the much lower quality browser voice.
   episodeSrc(episodeId) {
-    return `audio/learning/${episodeId}-${this.gender}.mp3`;
+    const female = `audio/learning/${episodeId}-female.mp3`;
+    const male = `audio/learning/${episodeId}-male.mp3`;
+    if (this.hasRecording(female)) return female;
+    if (this.hasRecording(male)) return male;
+    return female;
   },
 
   // Closing-quote audio: one fixed intro line, plus one file per quote.
