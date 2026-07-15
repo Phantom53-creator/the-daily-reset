@@ -26,9 +26,14 @@ function cues(duration) {
       t += holdSeconds;
       return api;
     },
+    // leadSeconds lets a multi-word lead ("Blink slowly.", "Roll your
+    // shoulders.") get more than the 1-second slot a single word like "Hold"
+    // or "Go." needs — squeezing a whole phrase into 1s forced a huge
+    // playback speed-up when recorded, which is audibly robotic/glitchy.
     countdown(from, opts) {
       opts = opts || {};
-      if (opts.lead && t < duration) { list.push({ t, say: opts.lead, rate: 'count' }); t += 1; }
+      const leadSeconds = opts.leadSeconds || 1;
+      if (opts.lead && t < duration) { list.push({ t, say: opts.lead, rate: 'count' }); t += leadSeconds; }
       for (let n = from; n >= 1; n--) {
         if (t < duration) list.push({ t, say: COUNT_WORDS[n - 1], rate: 'count' });
         t += 1;
@@ -37,7 +42,8 @@ function cues(duration) {
     },
     countup(to, opts) {
       opts = opts || {};
-      if (opts.lead && t < duration) { list.push({ t, say: opts.lead, rate: 'count' }); t += 1; }
+      const leadSeconds = opts.leadSeconds || 1;
+      if (opts.lead && t < duration) { list.push({ t, say: opts.lead, rate: 'count' }); t += leadSeconds; }
       for (let n = 1; n <= to; n++) {
         if (t < duration) list.push({ t, say: COUNT_WORDS[n - 1], rate: 'count' });
         t += 1;
@@ -113,11 +119,11 @@ const BREAKS = {
           .build()
       },
       {
-        duration: 25,
+        duration: 26,
         instruction: 'Open your eyes. Blink slowly 10 times. Notice the difference.',
-        cues: cues(25)
+        cues: cues(26)
           .line('Gently open your eyes again.', 4)
-          .countup(10, { lead: 'Blink slowly.' })
+          .countup(10, { lead: 'Blink slowly.', leadSeconds: 2 })
           .line('Notice the difference in how your eyes feel.', 6)
           .line('Clarity. Moisture. Ease.', 4)
           .build()
@@ -268,12 +274,12 @@ const BREAKS = {
           .build()
       },
       {
-        duration: 20,
+        duration: 21,
         instruction: 'Arms down. Shake out hands and arms. Roll shoulders 3 times.',
-        cues: cues(20)
+        cues: cues(21)
           .line('Shake out your hands and arms.', 5)
           .line('Loose and floppy, like rubber.', 5)
-          .countup(3, { lead: 'Roll your shoulders.' })
+          .countup(3, { lead: 'Roll your shoulders.', leadSeconds: 2 })
           .line('And let everything settle.', 6)
           .build()
       },

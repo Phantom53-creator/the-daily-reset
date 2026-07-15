@@ -32,9 +32,13 @@ Generate with ElevenLabs (decided 2026-07-05) or any studio source. Export MP3, 
 | Stand break steps | `audio/breaks/stand-step1-<g>.mp3` … `stand-step6-<g>.mp3` | 6 per voice |
 | Breathe break steps | `audio/breaks/breathe-step1-<g>.mp3` … `breathe-step6-<g>.mp3` | 6 per voice |
 | Posture break steps | `audio/breaks/posture-step1-<g>.mp3` … `posture-step6-<g>.mp3` | 6 per voice |
+| Closing-quote lead-in | `audio/quotes/quote-intro-<g>.mp3` | 1 per voice |
+| Closing quotes | `audio/quotes/quote-<category>-<index>-<g>.mp3` | 42 per voice |
 | Learning episodes | `audio/learning/lunch-001-<g>.mp3` … `lunch-022-<g>.mp3` | 22 per voice |
 
-`<g>` = `female` or `male`. Total: 52 files per voice (30 break steps + 22 episodes). There is no longer a separate "keep going" clip — that guidance is built into each step's script.
+`<g>` = `female` or `male`. Total: 95 files per voice (30 break steps + 1 lead-in + 42 quotes + 22 episodes). There is no longer a separate "keep going" clip — that guidance is built into each step's script.
+
+**Closing quotes:** at the end of every break the voice says the lead-in (`quote-intro`) then reads that day's quote. The exact filename for each quote is shown on the **Closing Quotes** tab of `script-review.html` (e.g. `quote-focus-0`). `<category>` is one of focus, tension, movement, calm, posture, general; `<index>` is 0–5 (0–11 for general). Only 5 categories are heard after breaks (focus→Eyes, tension→Shoulders, movement→Stand, calm→Breathe, posture→Posture); the 12 `general` quotes are the dashboard's morning anchor and aren't spoken yet — record them only if you want them ready for later.
 
 ## After adding files — 2 steps
 

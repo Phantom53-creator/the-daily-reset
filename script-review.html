@@ -7,19 +7,29 @@
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
   body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f5f5f5; color: #222; line-height: 1.6; }
-  .header { background: #1a1a2e; color: white; padding: 20px 30px; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 8px rgba(0,0,0,0.15); }
+  .header { background: #1a1a2e; color: white; padding: 20px 30px; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 8px rgba(0,0,0,0.15); display: flex; justify-content: space-between; align-items: center; gap: 20px; flex-wrap: wrap; }
   .header h1 { font-size: 20px; font-weight: 600; }
   .header p { font-size: 13px; opacity: 0.7; margin-top: 4px; }
+  .btn-export { background: #e94560; color: white; border: none; padding: 10px 18px; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 600; white-space: nowrap; }
+  .btn-export:hover { background: #c73e54; }
   .tabs { display: flex; gap: 0; background: #16213e; }
   .tab { padding: 12px 24px; color: rgba(255,255,255,0.6); cursor: pointer; border: none; background: none; font-size: 14px; font-weight: 500; transition: all 0.2s; }
   .tab.active { color: white; border-bottom: 3px solid #e94560; background: rgba(255,255,255,0.05); }
   .tab:hover { color: white; }
   .container { max-width: 900px; margin: 0 auto; padding: 20px 30px; }
-  .script-card { background: white; border-radius: 8px; padding: 24px; margin-bottom: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+  .script-card { background: white; border-radius: 8px; padding: 24px; margin-bottom: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); border-left: 3px solid transparent; }
+  .script-card.status-ok { border-left-color: #4caf50; }
+  .script-card.status-change { border-left-color: #f0a020; }
   .script-card h3 { font-size: 16px; margin-bottom: 4px; }
   .script-meta { font-size: 12px; color: #888; margin-bottom: 12px; }
   .script-meta span { margin-right: 16px; }
-  .script-text { font-size: 14px; line-height: 1.7; color: #333; background: #fafafa; padding: 16px; border-radius: 6px; border-left: 3px solid #e94560; margin-bottom: 12px; white-space: pre-wrap; }
+  .script-text { width: 100%; font: inherit; font-size: 14px; line-height: 1.7; color: #333; background: #fafafa; padding: 16px; border-radius: 6px; border: 1px solid #eee; margin-bottom: 8px; white-space: pre-wrap; resize: vertical; min-height: 70px; }
+  .script-text:focus { outline: 2px solid #e94560; outline-offset: -1px; background: #fff; }
+  .script-text.edited { background: #fffaf0; border-color: #f0d090; }
+  .edited-note { font-size: 11.5px; color: #b8790a; margin-bottom: 12px; display: none; }
+  .edited-note.show { display: block; }
+  .edited-note button { background: none; border: none; color: #b8790a; text-decoration: underline; cursor: pointer; font-size: 11.5px; padding: 0; margin-left: 6px; }
+  .break-note { font-size: 11.5px; color: #888; margin: 0 0 10px; font-style: italic; }
   .controls { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
   .btn { padding: 8px 16px; border: none; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 500; transition: all 0.15s; }
   .btn-play { background: #e94560; color: white; }
@@ -28,7 +38,9 @@
   .btn-stop:hover { background: #333; }
   .btn-mark { background: #f0f0f0; color: #555; }
   .btn-mark.marked { background: #4caf50; color: white; }
-  .playing { border-left-color: #4caf50; box-shadow: 0 2px 8px rgba(76,175,80,0.2); }
+  .btn-change { background: #f0f0f0; color: #555; }
+  .btn-change.marked { background: #f0a020; color: white; }
+  .playing { box-shadow: 0 2px 8px rgba(76,175,80,0.2); }
   .summary-bar { background: #fff3cd; border: 1px solid #ffeaa7; border-radius: 8px; padding: 12px 20px; margin-bottom: 20px; font-size: 13px; color: #856404; }
   .summary-bar strong { color: #533f01; }
   .filter-bar { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
@@ -42,43 +54,59 @@
 <body>
 
 <div class="header">
-  <h1>📋 Script Review — The Daily Reset</h1>
-  <p>Read and hear every narration script before paying for professional voicing. Use the play buttons to hear each script with your browser's TTS.</p>
+  <div>
+    <h1>📋 Script Review — The Daily Reset</h1>
+    <p>Read each script, or click ▶ Play to hear it. Mark OK, flag for Change, or edit the text directly.</p>
+  </div>
+  <button class="btn-export" id="exportBtn">⬇ Export Review</button>
 </div>
 
 <div class="tabs">
   <button class="tab active" id="tab-breaks" onclick="showTab('breaks')">Break Narrations</button>
+  <button class="tab" id="tab-quotes" onclick="showTab('quotes')">Closing Quotes</button>
   <button class="tab" id="tab-learning" onclick="showTab('learning')">Learning Episodes</button>
 </div>
 
 <div class="container">
 
-  <div class="summary-bar" id="summary">
-    <strong>Review instructions:</strong> Read each script. Click ▶ Play to hear it spoken aloud. Click "Mark OK" when you're happy with the script. When all are marked, you're ready to generate professional audio with ElevenLabs.
-  </div>
+  <div class="summary-bar" id="summary"></div>
 
   <div class="filter-bar" id="filterBar">
     <button class="filter-btn active" onclick="filterScripts('all', this)">All</button>
-    <button class="filter-btn" onclick="filterScripts('unmarked', this)">Unmarked</button>
-    <button class="filter-btn" onclick="filterScripts('marked', this)">Marked OK</button>
+    <button class="filter-btn" onclick="filterScripts('unreviewed', this)">Unreviewed</button>
+    <button class="filter-btn" onclick="filterScripts('ok', this)">Marked OK</button>
+    <button class="filter-btn" onclick="filterScripts('change', this)">Needs Change</button>
+    <button class="filter-btn" onclick="filterScripts('edited', this)">Edited</button>
   </div>
 
   <div id="breaksPanel"></div>
+  <div id="quotesPanel" class="hidden"></div>
   <div id="learningPanel" class="hidden"></div>
 
 </div>
 
 <script src="breaks.js"></script>
+<script src="quotes.js"></script>
 <script src="learning.js"></script>
 <script>
 const synth = window.speechSynthesis;
 let voices = [];
-let markedScripts = JSON.parse(localStorage.getItem('markedScripts') || '{}');
 
-// Script text lookup — avoids embedding narration in HTML attributes
+// status: 'ok' | 'change' | undefined(unreviewed). Old boolean `true` values
+// from before this update are treated as 'ok'.
+let statuses = JSON.parse(localStorage.getItem('reviewStatuses') || localStorage.getItem('markedScripts') || '{}');
+Object.keys(statuses).forEach(id => { if (statuses[id] === true) statuses[id] = 'ok'; if (statuses[id] === false) delete statuses[id]; });
+
+// edits: { [scriptId]: editedText } — only present when text differs from original
+let edits = JSON.parse(localStorage.getItem('reviewEdits') || '{}');
+
+function saveStatuses() { localStorage.setItem('reviewStatuses', JSON.stringify(statuses)); }
+function saveEdits() { localStorage.setItem('reviewEdits', JSON.stringify(edits)); }
+
+// Original script text lookup (unedited) + metadata for export
 const scriptTexts = {};
+const scriptMeta = {}; // { title, forFile }
 
-// Load voices
 function loadVoices() {
   voices = synth.getVoices().filter(v => v.lang.startsWith('en'));
 }
@@ -88,7 +116,7 @@ if (synth.onvoiceschanged !== undefined) {
 }
 
 function estimateWords(text) {
-  return text.trim().split(/\s+/).length;
+  return text.trim().split(/\s+/).filter(Boolean).length;
 }
 
 function estimateSpeakingTime(text) {
@@ -99,19 +127,20 @@ function estimateSpeakingTime(text) {
   return mins > 0 ? mins + 'm ' + secs + 's' : secs + 's';
 }
 
-// Single speak function — looks up text from the scriptTexts map
+function currentText(scriptId) {
+  return edits[scriptId] !== undefined ? edits[scriptId] : scriptTexts[scriptId];
+}
+
 function speakScript(scriptId, cardId) {
-  // Stop any current speech
   synth.cancel();
   document.querySelectorAll('.script-card').forEach(c => c.classList.remove('playing'));
 
-  const text = scriptTexts[scriptId];
+  const text = currentText(scriptId);
   if (!text) return;
 
   const utter = new SpeechSynthesisUtterance(text);
   utter.rate = 1.1;
 
-  // Pick best available voice
   const preferred = ['samantha', 'ava', 'allison', 'karen', 'serena', 'alex', 'tom', 'daniel'];
   let voice = voices.find(v => preferred.some(n => v.name.toLowerCase().includes(n)));
   if (!voice) voice = voices.find(v => v.name.toLowerCase().includes('google'));
@@ -134,32 +163,66 @@ function stopSpeaking() {
   document.querySelectorAll('.script-card').forEach(c => c.classList.remove('playing'));
 }
 
-function toggleMark(scriptId, btn) {
-  markedScripts[scriptId] = !markedScripts[scriptId];
-  localStorage.setItem('markedScripts', JSON.stringify(markedScripts));
+function setStatus(scriptId, status, card) {
+  // Clicking the already-active status clears it back to unreviewed
+  statuses[scriptId] = (statuses[scriptId] === status) ? undefined : status;
+  if (statuses[scriptId] === undefined) delete statuses[scriptId];
+  saveStatuses();
+  renderCardStatus(card, scriptId);
+  updateSummary();
+}
 
-  if (markedScripts[scriptId]) {
-    btn.classList.add('marked');
-    btn.textContent = '\u2713 Marked OK';
-  } else {
-    btn.classList.remove('marked');
-    btn.textContent = 'Mark OK';
-  }
+function renderCardStatus(card, scriptId) {
+  const status = statuses[scriptId];
+  card.classList.remove('status-ok', 'status-change');
+  if (status) card.classList.add('status-' + status);
+
+  const okBtn = card.querySelector('.btn-mark');
+  const changeBtn = card.querySelector('.btn-change');
+  okBtn.classList.toggle('marked', status === 'ok');
+  okBtn.textContent = status === 'ok' ? '✓ Marked OK' : 'Mark OK';
+  changeBtn.classList.toggle('marked', status === 'change');
+  changeBtn.textContent = status === 'change' ? '✎ Needs Change' : 'Change';
+}
+
+function onScriptEdited(scriptId, card, textarea) {
+  const original = scriptTexts[scriptId];
+  const value = textarea.value;
+  if (value === original) delete edits[scriptId];
+  else edits[scriptId] = value;
+  saveEdits();
+  textarea.classList.toggle('edited', edits[scriptId] !== undefined);
+  const note = card.querySelector('.edited-note');
+  if (note) note.classList.toggle('show', edits[scriptId] !== undefined);
+  updateSummary();
+}
+
+function resetEdit(scriptId, card, textarea) {
+  delete edits[scriptId];
+  saveEdits();
+  textarea.value = scriptTexts[scriptId];
+  textarea.classList.remove('edited');
+  const note = card.querySelector('.edited-note');
+  if (note) note.classList.remove('show');
   updateSummary();
 }
 
 function updateSummary() {
   const total = Object.keys(scriptTexts).length;
-  const marked = Object.values(markedScripts).filter(v => v).length;
+  const ok = Object.values(statuses).filter(s => s === 'ok').length;
+  const change = Object.values(statuses).filter(s => s === 'change').length;
+  const editedCount = Object.keys(edits).length;
 
   const bar = document.getElementById('summary');
-  if (marked === total && total > 0) {
-    bar.style.background = '#d4edda';
-    bar.style.borderColor = '#c3e6cb';
-    bar.style.color = '#155724';
-    bar.innerHTML = '<strong>\u2705 All ' + total + ' scripts reviewed and marked OK!</strong> Ready to generate professional audio with ElevenLabs.';
+  if (ok === total && total > 0 && change === 0) {
+    bar.style.background = '#d4edda'; bar.style.borderColor = '#c3e6cb'; bar.style.color = '#155724';
+    bar.innerHTML = '<strong>✅ All ' + total + ' scripts reviewed and marked OK!</strong>' +
+      (editedCount ? ' ' + editedCount + ' script(s) have edits — click Export Review to hand them back for changes to be applied.' : ' Ready to generate professional audio with ElevenLabs.');
   } else {
-    bar.innerHTML = '<strong>Review instructions:</strong> Read each script. Click \u25B6 Play to hear it spoken aloud. Click "Mark OK" when you\'re happy with the script. <strong>Progress: ' + marked + '/' + total + ' marked OK.</strong> When all are marked, you\'re ready to generate professional audio with ElevenLabs.';
+    bar.style.background = '#fff3cd'; bar.style.borderColor = '#ffeaa7'; bar.style.color = '#856404';
+    bar.innerHTML = '<strong>Progress: ' + ok + '/' + total + ' marked OK' + (change ? ', ' + change + ' flagged for change' : '') + '.</strong> ' +
+      (editedCount ? editedCount + ' script(s) edited — ' : '') +
+      'Click ▶ Play to hear a script, edit the text directly if you want to change it, then Mark OK or Change. Click <strong>Export Review</strong> any time to save your progress to a file.';
   }
 }
 
@@ -168,14 +231,15 @@ function filterScripts(filter, btn) {
   btn.classList.add('active');
 
   document.querySelectorAll('.script-card').forEach(card => {
-    const isMarked = markedScripts[card.dataset.scriptId];
-    if (filter === 'all') {
-      card.classList.remove('hidden');
-    } else if (filter === 'marked') {
-      card.classList.toggle('hidden', !isMarked);
-    } else if (filter === 'unmarked') {
-      card.classList.toggle('hidden', isMarked);
-    }
+    const id = card.dataset.scriptId;
+    const status = statuses[id];
+    const isEdited = edits[id] !== undefined;
+    let show = true;
+    if (filter === 'ok') show = status === 'ok';
+    else if (filter === 'change') show = status === 'change';
+    else if (filter === 'unreviewed') show = !status;
+    else if (filter === 'edited') show = isEdited;
+    card.classList.toggle('hidden', !show);
   });
 }
 
@@ -183,17 +247,19 @@ function showTab(tab) {
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
   document.getElementById('tab-' + tab).classList.add('active');
   document.getElementById('breaksPanel').classList.toggle('hidden', tab !== 'breaks');
+  document.getElementById('quotesPanel').classList.toggle('hidden', tab !== 'quotes');
   document.getElementById('learningPanel').classList.toggle('hidden', tab !== 'learning');
 }
 
-// Create a card element safely (no inline JS with text)
-function createCard(scriptId, title, metaHtml, text, duration) {
-  // Store text for lookup
+// Create a card element. `forFile` names the source file the script comes
+// from (breaks.js / quotes.js / learning.js) — included in the export so
+// changes are easy to route back to the right place.
+function createCard(scriptId, title, metaHtml, text, duration, forFile, extraNote) {
   scriptTexts[scriptId] = text;
+  scriptMeta[scriptId] = { title, forFile };
 
   const words = estimateWords(text);
   const speakTime = estimateSpeakingTime(text);
-  const isMarked = markedScripts[scriptId];
   const cardId = 'card-' + scriptId;
 
   const card = document.createElement('div');
@@ -205,29 +271,38 @@ function createCard(scriptId, title, metaHtml, text, duration) {
     '<h3>' + title + '</h3>' +
     '<div class="script-meta">' +
       metaHtml +
-      '<span>\u23F1 ' + duration + 's allocated</span>' +
-      '<span>\uD83D\uDCDD ' + words + ' words</span>' +
-      '<span>\uD83D\uDD0A ~' + speakTime + ' speaking time</span>' +
+      '<span>⏱ ' + duration + 's allocated</span>' +
+      '<span>📝 ' + words + ' words</span>' +
+      '<span>🔊 ~' + speakTime + ' speaking time</span>' +
     '</div>' +
-    '<div class="script-text"></div>' +
+    (extraNote ? '<p class="break-note">' + extraNote + '</p>' : '') +
+    '<textarea class="script-text" rows="3" spellcheck="false"></textarea>' +
+    '<p class="edited-note">✎ Edited from the original — <button type="button">Reset to original</button></p>' +
     '<div class="controls">' +
-      '<button class="btn btn-play">\u25B6 Play</button>' +
-      '<button class="btn btn-stop">\u23F9 Stop</button>' +
-      '<button class="btn btn-mark' + (isMarked ? ' marked' : '') + '">' + (isMarked ? '\u2713 Marked OK' : 'Mark OK') + '</button>' +
+      '<button class="btn btn-play">▶ Play</button>' +
+      '<button class="btn btn-stop">⏹ Stop</button>' +
+      '<button class="btn btn-mark">Mark OK</button>' +
+      '<button class="btn btn-change">Change</button>' +
     '</div>';
 
-  // Set text safely (no HTML injection issues)
-  card.querySelector('.script-text').textContent = text;
+  const textarea = card.querySelector('.script-text');
+  textarea.value = edits[scriptId] !== undefined ? edits[scriptId] : text;
+  if (edits[scriptId] !== undefined) {
+    textarea.classList.add('edited');
+    card.querySelector('.edited-note').classList.add('show');
+  }
+  // Auto-grow the textarea to fit its content
+  const grow = () => { textarea.style.height = 'auto'; textarea.style.height = (textarea.scrollHeight + 2) + 'px'; };
+  grow();
 
-  // Wire up buttons
-  card.querySelector('.btn-play').addEventListener('click', function() {
-    speakScript(scriptId, cardId);
-  });
+  card.querySelector('.btn-play').addEventListener('click', () => speakScript(scriptId, cardId));
   card.querySelector('.btn-stop').addEventListener('click', stopSpeaking);
-  card.querySelector('.btn-mark').addEventListener('click', function() {
-    toggleMark(scriptId, this);
-  });
+  card.querySelector('.btn-mark').addEventListener('click', () => setStatus(scriptId, 'ok', card));
+  card.querySelector('.btn-change').addEventListener('click', () => setStatus(scriptId, 'change', card));
+  card.querySelector('.edited-note button').addEventListener('click', () => resetEdit(scriptId, card, textarea));
+  textarea.addEventListener('input', () => { grow(); onScriptEdited(scriptId, card, textarea); });
 
+  renderCardStatus(card, scriptId);
   return card;
 }
 
@@ -236,11 +311,8 @@ function renderBreaks() {
   const panel = document.getElementById('breaksPanel');
   panel.innerHTML = '';
 
-  const breaksData = window.BREAKS || (typeof BREAKS !== 'undefined' ? BREAKS : null);
-  if (!breaksData) {
-    panel.innerHTML = '<p style="color:#c00;">Error: breaks.js not loaded.</p>';
-    return;
-  }
+  const breaksData = window.BREAKS;
+  if (!breaksData) { panel.innerHTML = '<p style="color:#c00;">Error: breaks.js not loaded.</p>'; return; }
 
   for (const breakKey in breaksData) {
     const brk = breaksData[breakKey];
@@ -262,7 +334,9 @@ function renderBreaks() {
         'Step ' + (i + 1) + ': ' + step.instruction,
         '',
         step.narration,
-        step.duration
+        step.duration,
+        'breaks.js',
+        'This is the read-aloud script built from timed cues (holds, counts, breathing) — edits here describe the change wanted; because each phrase is tied to an exact second, I\'ll apply the wording into the underlying timed steps rather than pasting this text back verbatim.'
       );
       panel.appendChild(card);
     });
@@ -274,23 +348,20 @@ function renderLearning() {
   const panel = document.getElementById('learningPanel');
   panel.innerHTML = '';
 
-  const episodes = window.LEARNING_EPISODES || (typeof LEARNING_EPISODES !== 'undefined' ? LEARNING_EPISODES : null);
-  if (!episodes) {
-    panel.innerHTML = '<p style="color:#c00;">Error: learning.js not loaded.</p>';
-    return;
-  }
+  const episodes = window.LEARNING_EPISODES;
+  if (!episodes) { panel.innerHTML = '<p style="color:#c00;">Error: learning.js not loaded.</p>'; return; }
 
   episodes.forEach((ep, i) => {
     const scriptId = ep.id;
     const card = createCard(
       scriptId,
       (i + 1) + '. ' + ep.title,
-      '<span>\uD83D\uDCC2 ' + ep.category + '</span>',
+      '<span>📂 ' + ep.category + '</span>',
       ep.transcript,
-      ep.duration
+      ep.duration,
+      'learning.js'
     );
 
-    // Add one-idea and takeaway above the script text
     const ideaDiv = document.createElement('div');
     ideaDiv.style.cssText = 'font-size:13px;color:#555;margin-bottom:8px;';
     ideaDiv.innerHTML = '<strong>One idea:</strong> ' + ep.oneIdea;
@@ -305,8 +376,86 @@ function renderLearning() {
   });
 }
 
+// Which break shows which quote category (so you know where each is heard)
+const CATEGORY_BREAK = { focus: 'Eyes', tension: 'Shoulders', movement: 'Stand', calm: 'Breathe', posture: 'Posture', general: 'Morning anchor (shown on dashboard)' };
+
+// Render closing-quote scripts. File names here MUST match audio.js:
+//   intro : audio/quotes/quote-intro-<gender>.mp3
+//   quote : audio/quotes/quote-<category>-<index>-<gender>.mp3
+function renderQuotes() {
+  const panel = document.getElementById('quotesPanel');
+  panel.innerHTML = '';
+  const quotes = window.QUOTES;
+  if (!quotes) { panel.innerHTML = '<p style="color:#c00;">Error: quotes.js not loaded.</p>'; return; }
+
+  const introHeader = document.createElement('div');
+  introHeader.className = 'section-header';
+  introHeader.textContent = '🔊 Lead-in line (spoken before every quote)';
+  panel.appendChild(introHeader);
+  const introDesc = document.createElement('div');
+  introDesc.className = 'section-desc';
+  introDesc.textContent = 'Record ONE file: quote-intro. It plays right after "Done", then the quote follows.';
+  panel.appendChild(introDesc);
+  panel.appendChild(createCard('quote-intro', 'Lead-in — file: quote-intro', '', "To finish, here's a thought worth carrying with you.", 5, 'app.js'));
+
+  for (const category in quotes) {
+    const header = document.createElement('div');
+    header.className = 'section-header';
+    header.textContent = '“ ' + category.charAt(0).toUpperCase() + category.slice(1) + ' quotes — heard after: ' + (CATEGORY_BREAK[category] || category);
+    panel.appendChild(header);
+    const desc = document.createElement('div');
+    desc.className = 'section-desc';
+    desc.textContent = 'Read each quote followed by its author, as written.';
+    panel.appendChild(desc);
+
+    quotes[category].forEach((q, i) => {
+      const scriptId = 'quote-' + category + '-' + i;
+      const spoken = q.text + ' — ' + q.author + '.';
+      panel.appendChild(createCard(scriptId, 'file: ' + scriptId, '<span>' + q.author + '</span>', spoken, 8, 'quotes.js'));
+    });
+  }
+}
+
+// Export the full review state to a JSON file — hand this back for edits
+// and change-requests to be applied to breaks.js / quotes.js / learning.js.
+function exportReview() {
+  const items = Object.keys(scriptTexts).map(id => {
+    const edited = edits[id];
+    return {
+      id,
+      title: scriptMeta[id]?.title || '',
+      file: scriptMeta[id]?.forFile || '',
+      status: statuses[id] || 'unreviewed',
+      original: scriptTexts[id],
+      edited: edited !== undefined ? edited : null
+    };
+  });
+  const payload = {
+    exportedAt: new Date().toISOString(),
+    summary: {
+      total: items.length,
+      ok: items.filter(i => i.status === 'ok').length,
+      needsChange: items.filter(i => i.status === 'change').length,
+      unreviewed: items.filter(i => i.status === 'unreviewed').length,
+      edited: items.filter(i => i.edited !== null).length
+    },
+    items
+  };
+  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'script-review-export.json';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+document.getElementById('exportBtn').addEventListener('click', exportReview);
+
 // Initialize
 renderBreaks();
+renderQuotes();
 renderLearning();
 updateSummary();
 </script>

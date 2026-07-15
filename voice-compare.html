@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Voice Comparison — The Daily Reset</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f5f5f5; color: #222; line-height: 1.6; }
+  .header { background: #1a1a2e; color: white; padding: 20px 30px; }
+  .header h1 { font-size: 20px; font-weight: 600; }
+  .header p { font-size: 13px; opacity: 0.75; margin-top: 4px; }
+  .container { max-width: 1000px; margin: 0 auto; padding: 24px 30px 60px; }
+  .empty { background: white; border-radius: 10px; padding: 30px; text-align: center; color: #888; }
+  .platform-card { background: white; border-radius: 10px; padding: 20px 24px; margin-bottom: 18px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+  .platform-head { display: flex; align-items: baseline; gap: 12px; margin-bottom: 4px; flex-wrap: wrap; }
+  .platform-label { font-size: 17px; font-weight: 700; }
+  .platform-tag { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; padding: 3px 9px; border-radius: 20px; color: white; }
+  .tag-telnyx { background: #e94560; }
+  .tag-elevenlabs { background: #6c3ce9; }
+  .tag-speechify { background: #0e9f6e; }
+  .platform-meta { font-size: 12.5px; color: #888; margin-bottom: 14px; word-break: break-all; }
+  .file-row { display: flex; align-items: center; gap: 14px; padding: 8px 0; border-top: 1px solid #f0f0f0; }
+  .file-row:first-of-type { border-top: none; }
+  .file-name { font-size: 13px; color: #444; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  audio { height: 32px; max-width: 260px; }
+  .missing { font-size: 12.5px; color: #bbb; font-style: italic; }
+  .group-header { font-size: 15px; font-weight: 700; margin: 26px 0 10px; color: #1a1a2e; }
+  .group-header:first-child { margin-top: 0; }
+  .refresh-btn { background: #1a1a2e; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 13px; margin-bottom: 20px; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>🔊 Voice Comparison — The Daily Reset</h1>
+  <p>Every platform you've generated a test for, side by side. This never affects the live app — these are separate test files under voice-tests/.</p>
+</div>
+
+<div class="container">
+  <button class="refresh-btn" onclick="location.reload()">↻ Refresh (after running tts-generate.js again)</button>
+  <div id="content"></div>
+</div>
+
+<script>
+async function load() {
+  const content = document.getElementById('content');
+  let index;
+  try {
+    const res = await fetch('voice-tests/index.json?t=' + Date.now());
+    if (!res.ok) throw new Error('not found');
+    index = await res.json();
+  } catch (e) {
+    content.innerHTML = '<div class="empty">No comparison tests yet.<br><br>Run something like:<br><code>node tts-generate.js --provider=elevenlabs --voice="..." --gender=female --breaks=eyes --label=elevenlabs-test1</code><br><br>then refresh this page.</div>';
+    return;
+  }
+
+  if (!index.length) {
+    content.innerHTML = '<div class="empty">No comparison tests yet — run tts-generate.js with a --label to create one.</div>';
+    return;
+  }
+
+  // Group every file across all labels by its relative path, so the same
+  // script from different platforms lines up next to each other for easy A/B.
+  const allFiles = new Set();
+  index.forEach(entry => entry.files.forEach(f => allFiles.add(f)));
+
+  const tagClass = p => 'tag-' + (p || 'telnyx').toLowerCase();
+
+  let html = '';
+  [...allFiles].sort().forEach(filePath => {
+    html += `<div class="group-header">${filePath}</div>`;
+    index.forEach(entry => {
+      const has = entry.files.includes(filePath);
+      html += `<div class="platform-card"><div class="platform-head">
+        <span class="platform-label">${entry.label}</span>
+        <span class="platform-tag ${tagClass(entry.provider)}">${entry.provider}</span>
+      </div>
+      <div class="platform-meta">voice: ${entry.voice} · gender: ${entry.gender}</div>`;
+      if (has) {
+        html += `<div class="file-row"><audio controls preload="none" src="voice-tests/${entry.label}/${filePath}"></audio></div>`;
+      } else {
+        html += `<div class="file-row"><span class="missing">not generated for this platform yet</span></div>`;
+      }
+      html += `</div>`;
+    });
+  });
+  content.innerHTML = html;
+}
+load();
+</script>
+</body>
+</html>

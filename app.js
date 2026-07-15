@@ -680,15 +680,42 @@ const ResetApp = {
     document.getElementById('player-audio-source').style.display = 'none';
     this.renderStepDots();
 
-    const quote = window.getDailyQuote?.(this.state.currentBreak.closingQuote?.category || 'general', this.state.dayIndex);
+    // Closing quote — resolve with its index so a recording can map to it exactly.
+    const category = this.state.currentBreak.closingQuote?.category || 'general';
+    const catArr = window.QUOTES?.[category] || window.QUOTES?.general || [];
+    const quoteIndex = catArr.length ? this.state.dayIndex % catArr.length : 0;
+    const quote = catArr[quoteIndex];
     if (quote) {
       document.getElementById('player-quote').style.display = 'block';
       document.getElementById('player-quote-text').textContent = `“${quote.text}” — ${quote.author}`;
+      this.speakClosingQuote(category, quoteIndex, quote);
     }
 
     const history = JSON.parse(localStorage.getItem('reset_break_history') || '[]');
     history.push({ breakId: this.state.currentBreak.id, completedAt: new Date().toISOString() });
     localStorage.setItem('reset_break_history', JSON.stringify(history.slice(-100)));
+  },
+
+  // Spoken closing quote — for audio-first listeners who never see the screen.
+  // A short lead-in, then the quote and author, at the calm general pace.
+  QUOTE_INTRO: "To finish, here's a thought worth carrying with you.",
+
+  speakClosingQuote(category, index, quote) {
+    const narrationOn = document.getElementById('narration-toggle')?.checked;
+    if (narrationOn === false || !window.AudioEngine?.enabled) return;
+
+    const src = document.getElementById('player-audio-source');
+    if (src) { src.style.display = 'block'; src.textContent = "🔊 Today's closing thought"; }
+
+    const spokenQuote = `${quote.text} — ${quote.author}.`;
+    const introSrc = window.AudioEngine.quoteIntroSrc();
+    const quoteSrc = window.AudioEngine.quoteSrc(category, index);
+    // Speak the lead-in, then (only once it finishes) the quote itself — but not
+    // if the user has meanwhile left the completed-break screen or started again.
+    window.AudioEngine.narrate(introSrc, this.QUOTE_INTRO, () => {
+      const stillHere = document.getElementById('view-player')?.style.display !== 'none';
+      if (stillHere && !this.state.running) window.AudioEngine?.narrate(quoteSrc, spokenQuote);
+    });
   },
 
   stopBreakTimer() {

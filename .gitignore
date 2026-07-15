@@ -1,0 +1,14 @@
+# API keys — never commit. Set the matching env var in your shell profile,
+# or use the setup-*.sh scripts, which write to these untracked files.
+.telnyx.env
+.elevenlabs.env
+.speechify.env
+
+# OS / editor cruft
+.DS_Store
+
+# Voice-platform comparison test audio — throwaway, not part of the live app
+voice-tests/
+
+# Local session-tooling metadata — not part of the app
+.ijfw/

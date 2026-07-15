@@ -47,6 +47,14 @@ const AudioEngine = {
     return `audio/learning/${episodeId}-${this.gender}.mp3`;
   },
 
+  // Closing-quote audio: one fixed intro line, plus one file per quote.
+  quoteIntroSrc() {
+    return `audio/quotes/quote-intro-${this.gender}.mp3`;
+  },
+  quoteSrc(category, index) {
+    return `audio/quotes/quote-${category}-${index}-${this.gender}.mp3`;
+  },
+
   // Label shown in the player so testers can see which source is active
   sourceLabel() {
     return this.mode === 'recorded' ? 'Studio audio' : 'Device voice';
