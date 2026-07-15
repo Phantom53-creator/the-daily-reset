@@ -1005,11 +1005,10 @@ const ResetApp = {
       this.saveSettings();
     });
 
-    document.querySelectorAll('.voice-btn').forEach(btn => {
+    document.querySelectorAll('.voice-btn, .vst-option').forEach(btn => {
       btn.addEventListener('click', () => {
         window.AudioEngine?.setGender(btn.dataset.gender);
-        document.querySelectorAll('.voice-btn').forEach(b => b.classList.remove('active'));
-        document.querySelectorAll(`.voice-btn[data-gender="${btn.dataset.gender}"]`).forEach(b => b.classList.add('active'));
+        this.syncVoiceGenderUI(btn.dataset.gender);
       });
     });
 
@@ -1067,6 +1066,12 @@ const ResetApp = {
     ).join('');
   },
 
+  syncVoiceGenderUI(gender) {
+    document.querySelectorAll('.voice-btn, .vst-option').forEach(b => {
+      b.classList.toggle('active', b.dataset.gender === gender);
+    });
+  },
+
   toggleLearningConfig() {
     const enabled = document.getElementById('learning-toggle')?.checked;
     const config = document.getElementById('learning-config');
@@ -1084,8 +1089,7 @@ const ResetApp = {
     this.toggleLearningConfig();
     const narrationOn = document.getElementById('narration-toggle')?.checked;
     window.AudioEngine?.setEnabled(narrationOn !== false);
-    const gender = window.AudioEngine?.gender || 'female';
-    document.querySelectorAll(`.voice-btn[data-gender="${gender}"]`).forEach(b => b.classList.add('active'));
+    this.syncVoiceGenderUI(window.AudioEngine?.gender || 'female');
   },
 
   saveSettings() {
