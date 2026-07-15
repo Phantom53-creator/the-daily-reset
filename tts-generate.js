@@ -83,6 +83,7 @@ function parseArgs(argv) {
     else if (flag === 'label') args.label = value;
     else if (flag === 'model') args.model = value;
     else if (flag === 'pitch') args.pitch = value;
+    else if (flag === 'rate') args.rate = value;
     else if (flag === 'emotion') args.emotion = value;
   }
   return args;
@@ -310,14 +311,19 @@ function escapeXml(s) {
   return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&apos;');
 }
 
-// Wraps text in Speechify's documented SSML tags for pitch/emotion:
-//   <prosody pitch="-10%">...</prosody>  and  <speechify:style emotion="relaxed">...</speechify:style>
+// Wraps text in Speechify's documented SSML tags for pitch/rate/emotion:
+//   <prosody pitch="-10%" rate="-4%">...</prosody>  and  <speechify:style emotion="relaxed">...</speechify:style>
+// pitch and rate share one <prosody> tag (both are valid attributes on it);
+// emotion is a separate <speechify:style> wrapper, nested inside.
 // Speechify auto-detects SSML vs plain text on the `input` field — no separate flag needed.
-function wrapSpeechifySSML(text, pitch, emotion) {
-  if (!pitch && !emotion) return text;
+function wrapSpeechifySSML(text, pitch, rate, emotion) {
+  if (!pitch && !rate && !emotion) return text;
   let inner = escapeXml(text);
   if (emotion) inner = `<speechify:style emotion="${emotion}">${inner}</speechify:style>`;
-  if (pitch) inner = `<prosody pitch="${pitch}">${inner}</prosody>`;
+  if (pitch || rate) {
+    const attrs = [pitch && `pitch="${pitch}"`, rate && `rate="${rate}"`].filter(Boolean).join(' ');
+    inner = `<prosody ${attrs}>${inner}</prosody>`;
+  }
   return `<speak>${inner}</speak>`;
 }
 
@@ -333,7 +339,7 @@ function callSpeechifyTTS(apiKey, text, voiceId, speed, format = 'mp3', opts = {
     // 24000 Hz at the top 192kbps bitrate.
     const outputFormat = format === 'wav' ? 'wav_48000' : 'mp3_24000_192';
     const body = JSON.stringify({
-      input: wrapSpeechifySSML(text, opts.pitch, opts.emotion),
+      input: wrapSpeechifySSML(text, opts.pitch, opts.rate, opts.emotion),
       voice_id: voiceId,
       model: opts.model || 'simba-3.2',
       audio_format: format === 'wav' ? 'wav' : 'mp3',
@@ -636,7 +642,7 @@ async function main() {
   // Speechify-only extras: --model overrides simba-3.2 default; --pitch (e.g.
   // "-10%") and --emotion (e.g. "relaxed") are applied via SSML — see
   // wrapSpeechifySSML(). Harmlessly ignored by the other two providers.
-  const opts = { model: args.model, pitch: args.pitch, emotion: args.emotion };
+  const opts = { model: args.model, pitch: args.pitch, rate: args.rate, emotion: args.emotion };
 
   let done = 0;
   const allWarnings = [];
