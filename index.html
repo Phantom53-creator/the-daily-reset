@@ -29,19 +29,25 @@
   </div>
 </nav>
 
-<!-- ============ HERO SLIDE ============ -->
-<header class="slide slide-hero">
-  <div class="slide-panel">
+<!-- ============ HERO SLIDE (spoken intro: Imogen headline, Edmund tagline) ============ -->
+<header class="slide slide-hero" id="hero">
+  <div class="hero-duo" aria-hidden="true">
+    <div class="hero-img hero-img-woman" id="hero-img-woman"></div>
+    <div class="hero-img hero-img-man" id="hero-img-man"></div>
+  </div>
+  <div class="hero-center">
     <p class="brand-mark">The Daily <span>Reset</span></p>
-    <p class="slide-eyebrow">3-minute micro desk breaks for executives</p>
-    <h1>The meeting you need most today is <strong>three minutes with yourself.</strong></h1>
-    <p class="slide-sub">Research-backed microbreaks at your desk — eyes, shoulders, posture, breathing. No meditation. No yoga. Just a timer, a guided sequence, and your body remembering how to feel human again between calls.</p>
+    <p class="slide-eyebrow">3-minute micro desk breaks</p>
+    <h1 id="hero-headline"><span class="w">The</span> <span class="w">meeting</span> <span class="w">you</span> <span class="w">need</span> <span class="w">most</span> <span class="w">today</span> <span class="w">is</span> <strong><span class="w">three</span> <span class="w">minutes</span> <span class="w">with</span> <span class="w">yourself.</span></strong></h1>
+    <p class="hero-tagline" id="hero-tagline"><span class="w">For</span> <span class="w">executives,</span> <span class="w">founders,</span> <span class="w">and</span> <span class="w">senior</span> <span class="w">managers.</span></p>
     <div class="slide-actions">
       <a href="#" class="btn-solid js-start-trial">Try Free for 5 Days</a>
       <a href="#science" class="btn-ghost">See the evidence</a>
     </div>
     <p class="slide-note">No download. No credit card. Just your name and email.</p>
+    <button class="hero-play" id="hero-play" title="Replay the intro with the voices">&#128266; Voice Intro Replay</button>
   </div>
+  <div class="scroll-cue" aria-hidden="true">Scroll<span class="cue-chevron"></span></div>
 </header>
 
 <!-- ============ PROBLEM ============ -->
@@ -441,6 +447,91 @@ document.addEventListener('DOMContentLoaded', () => {
   const onScroll = () => nav.classList.toggle('scrolled', window.scrollY > 40);
   onScroll();
   window.addEventListener('scroll', onScroll, { passive: true });
+
+  // ----- Spoken hero intro -----
+  // Word fade-ins are driven by Speechify's word-level speech marks (ms from
+  // the start of each clip), so text lands exactly as each word is spoken.
+  const IMOGEN_TIMES = [0, 171, 512, 683, 896, 1152, 1835, 2389, 2645, 3072, 3243];
+  const EDMUND_TIMES = [0, 213, 1109, 1920, 2261, 2603];
+  const hero = document.getElementById('hero');
+  const heroPlay = document.getElementById('hero-play');
+  const headWords = document.querySelectorAll('#hero-headline .w');
+  const tagWords = document.querySelectorAll('#hero-tagline .w');
+  const womanImg = document.getElementById('hero-img-woman');
+  const manImg = document.getElementById('hero-img-man');
+  const imogen = new Audio('audio/landing/hero-imogen.mp3');
+  const edmund = new Audio('audio/landing/hero-edmund.mp3');
+  const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  let seqTimers = [];
+  let seqRunning = false;
+
+  const IMOGEN_END = 3930, EDMUND_END = 3130;
+  const restartZoom = (el) => { el.classList.remove('zooming'); void el.offsetWidth; el.classList.add('zooming'); };
+  const clearSeq = () => { seqTimers.forEach(clearTimeout); seqTimers = []; };
+
+  function startVisuals() {
+    hero.classList.add('seq');              // hide words + the man's photo
+    hero.classList.remove('seq-done', 'half');
+    headWords.forEach(w => w.classList.remove('on'));
+    tagWords.forEach(w => w.classList.remove('on'));
+    restartZoom(womanImg);
+    headWords.forEach((w, i) => seqTimers.push(setTimeout(() => w.classList.add('on'), IMOGEN_TIMES[i])));
+  }
+  function startSecondHalfVisuals() {
+    hero.classList.add('half');             // bring the man in with Edmund's line
+    restartZoom(manImg);
+    tagWords.forEach((w, i) => seqTimers.push(setTimeout(() => w.classList.add('on'), EDMUND_TIMES[i])));
+  }
+  function finishSequence() {
+    hero.classList.add('seq-done');
+    seqRunning = false;
+    heroPlay.style.display = '';
+    seqTimers.push(setTimeout(() => {
+      hero.classList.remove('seq', 'half');
+      headWords.forEach(w => w.classList.remove('on'));
+      tagWords.forEach(w => w.classList.remove('on'));
+    }, 600));
+  }
+
+  // The visual transition runs on its own timeline, so it works with the
+  // audio muted-by-policy on first load and with the voices on chip click.
+  function runHeroSequence(withAudio) {
+    if (seqRunning) return;
+    if (reducedMotion) {
+      // No animation for reduced-motion users — but the chip still plays the voices.
+      if (!withAudio) return;
+      imogen.currentTime = 0; edmund.currentTime = 0;
+      imogen.play().then(() => { imogen.onended = () => edmund.play().catch(() => {}); }).catch(() => {});
+      return;
+    }
+    seqRunning = true;
+    clearSeq();
+    heroPlay.style.display = 'none';
+    if (withAudio) {
+      imogen.currentTime = 0; edmund.currentTime = 0;
+      imogen.play().then(() => {
+        startVisuals();
+        imogen.onended = () => {
+          startSecondHalfVisuals();
+          edmund.play().catch(() => {});
+          edmund.onended = finishSequence;
+        };
+      }).catch(() => {          // audio refused — run it silently instead
+        startVisuals();
+        seqTimers.push(setTimeout(startSecondHalfVisuals, IMOGEN_END));
+        seqTimers.push(setTimeout(finishSequence, IMOGEN_END + EDMUND_END));
+      });
+    } else {
+      startVisuals();
+      seqTimers.push(setTimeout(startSecondHalfVisuals, IMOGEN_END));
+      seqTimers.push(setTimeout(finishSequence, IMOGEN_END + EDMUND_END));
+    }
+  }
+
+  heroPlay.addEventListener('click', () => runHeroSequence(true));
+  // Silent cinematic run on every page load (animation is never blocked by
+  // autoplay policy — only sound is). The chip replays it with the voices.
+  setTimeout(() => runHeroSequence(false), 350);
 
   // Reveal-on-scroll (no-op for users who prefer reduced motion — CSS handles it)
   const io = new IntersectionObserver((entries) => {

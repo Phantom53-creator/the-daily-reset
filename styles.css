@@ -40,6 +40,10 @@
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
 html { scroll-behavior: smooth; }
+/* Safety net against any stray horizontal overflow. `clip` (not `hidden`)
+   because overflow-x:hidden creates a scroll container, which would break
+   the position:sticky roll-over slides. */
+html, body { overflow-x: clip; }
 body {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
   background: var(--paper);
@@ -70,8 +74,11 @@ body {
 .nav-logo {
   font-weight: 800; font-size: 21px; letter-spacing: -.015em;
   color: var(--slide-ink); text-decoration: none; margin-right: auto;
-  transition: color .35s ease;
+  transition: color .35s ease, opacity .35s ease;
 }
+/* Over the hero the big in-panel brand mark owns the branding — the nav copy
+   would double it up, so it only appears once the nav goes solid on scroll. */
+.nav:not(.scrolled) .nav-logo { opacity: 0; pointer-events: none; }
 .nav.scrolled .nav-logo { color: var(--ink); }
 .nav-links { display: flex; gap: 24px; }
 .nav-links a {
@@ -109,8 +116,89 @@ body {
   content: ''; position: absolute; inset: 0; z-index: -1;
   background: linear-gradient(100deg, rgba(15, 18, 24, .45) 0%, rgba(15, 18, 24, .12) 55%, rgba(15, 18, 24, .25) 100%);
 }
-.slide-hero      { background-image: url('images/hero-office.jpg'); }
 .slide-learning  { background-image: url('images/audio-learning.jpg'); }
+
+/* ---------- Hero: two portraits + spoken intro ----------
+   The woman zooms in while Imogen speaks the headline; the man fades in and
+   zooms while Edmund speaks the tagline. Both sit behind a heavier tint so
+   the type stays prominent. Idle state (audio blocked / not played yet)
+   shows everything static. */
+.slide-hero::after { background: linear-gradient(rgba(15, 18, 24, .52), rgba(15, 18, 24, .62)); }
+/* Slightly under one viewport so the next section peeks at the bottom —
+   a built-in "there's more below" signal. */
+.slide-hero { min-height: 93vh; }
+/* overflow hidden: the Ken Burns zoom scales these past their box — without
+   clipping, the scaled edges widen the page and create a horizontal scrollbar */
+.hero-duo { position: absolute; inset: 0; z-index: -2; display: grid; grid-template-columns: 1fr 1fr; overflow: hidden; }
+.hero-img {
+  background-size: cover; background-position: 50% 22%;
+  transform-origin: 50% 25%; transition: opacity .9s ease;
+}
+.hero-img-woman { background-image: url('images/hero-woman.jpg'); }
+.hero-img-man   { background-image: url('images/hero-man.jpg'); }
+@keyframes heroZoom { from { transform: scale(1); } to { transform: scale(1.16); } }
+.hero-img.zooming { animation: heroZoom 4.2s ease-out forwards; }
+.seq .hero-img-man { opacity: 0; }
+.seq.half .hero-img-man { opacity: 1; }
+
+.hero-center {
+  position: relative; z-index: 1; margin: auto; text-align: center;
+  color: var(--slide-ink); padding: 130px 28px 90px; max-width: 760px;
+}
+.hero-center .brand-mark::after { left: 50%; transform: translateX(-50%); }
+.hero-center h1 {
+  font-weight: 300; font-size: clamp(2.1rem, 4.6vw, 3.5rem);
+  line-height: 1.16; letter-spacing: -.015em; margin-bottom: 20px;
+}
+.hero-center h1 strong { font-weight: 600; }
+.hero-center .slide-actions { justify-content: center; margin-top: 34px; }
+.hero-tagline {
+  font-size: 13px; font-weight: 700; letter-spacing: .2em; text-transform: uppercase;
+  color: #d8d4cc; margin-top: 6px;
+}
+.hero-play {
+  margin-top: 26px; background: var(--accent); border: 1px solid var(--accent);
+  color: var(--on-accent); font: inherit; font-size: 12px; font-weight: 700;
+  letter-spacing: .08em; text-transform: uppercase; padding: 11px 22px; cursor: pointer;
+  animation: chip-glow 2.4s ease-out infinite;
+  transition: background .2s ease;
+}
+.hero-play:hover { background: var(--accent-dark); border-color: var(--accent-dark); }
+@keyframes chip-glow {
+  0%   { box-shadow: 0 0 0 0 color-mix(in srgb, var(--accent) 60%, transparent); }
+  70%  { box-shadow: 0 0 0 16px transparent; }
+  100% { box-shadow: 0 0 0 0 transparent; }
+}
+@media (prefers-reduced-motion: reduce) { .hero-play { animation: none; } }
+
+/* Scroll cue: bouncing chevron at the base of the hero; fades away once the
+   visitor starts scrolling (driven by the nav's existing .scrolled toggle). */
+.scroll-cue {
+  position: absolute; left: 50%; bottom: 22px; transform: translateX(-50%);
+  z-index: 1; display: flex; flex-direction: column; align-items: center; gap: 8px;
+  color: var(--slide-ink); font-size: 10.5px; font-weight: 700;
+  letter-spacing: .28em; text-transform: uppercase; opacity: .75;
+  transition: opacity .4s ease; pointer-events: none;
+}
+.cue-chevron {
+  width: 12px; height: 12px; border-right: 2px solid currentColor; border-bottom: 2px solid currentColor;
+  transform: rotate(45deg); animation: cue-bounce 1.9s ease-in-out infinite;
+}
+@keyframes cue-bounce {
+  0%, 100% { transform: rotate(45deg) translate(0, 0); opacity: .9; }
+  50%      { transform: rotate(45deg) translate(7px, 7px); opacity: .35; }
+}
+.nav.scrolled ~ .slide-hero .scroll-cue { opacity: 0; }
+@media (prefers-reduced-motion: reduce) { .cue-chevron { animation: none; } }
+
+/* Word-by-word reveal, timed to the voice in JS */
+.w { display: inline-block; }
+.seq .w { opacity: 0; transform: translateY(14px); transition: opacity .38s ease, transform .38s ease; }
+.seq .w.on { opacity: 1; transform: none; }
+@media (prefers-reduced-motion: reduce) {
+  .hero-img.zooming { animation: none; }
+  .seq .w { opacity: 1; transform: none; }
+}
 
 /* Breaks slide: two photos side by side — a female executive pausing at the
    window, and a male executive listening, eyes off the screen. */
