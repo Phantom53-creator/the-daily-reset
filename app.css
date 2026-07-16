@@ -154,9 +154,18 @@ body.no-chrome .side { display: none; }
 .access-pill.pill-expired { background: rgba(139,30,30,.12); color: var(--danger); border-color: var(--danger-line); }
 
 /* ---------- Main ---------- */
-.app-main { flex: 1; padding: 34px 40px 80px; max-width: 1060px; min-width: 0; }
+.app-main { flex: 1; padding: 34px 40px 80px; max-width: 1060px; min-width: 0; position: relative; overflow: hidden; }
 body.no-chrome .app-main { max-width: none; }
 .view { animation: fadeUp .35s ease; }
+/* Giant outlined watermark letter — the same editorial signature used behind
+   every section on the landing page, carried into the app for continuity. */
+#view-dashboard::before {
+  content: 'R'; position: absolute; z-index: 0; top: -60px; right: -40px;
+  font-size: 420px; font-weight: 700; line-height: .8;
+  color: transparent; -webkit-text-stroke: 2px var(--line); pointer-events: none;
+}
+#view-dashboard > * { position: relative; z-index: 1; }
+@media (max-width: 700px) { #view-dashboard::before { font-size: 260px; top: -30px; } }
 @keyframes fadeUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
 
 /* ---------- Buttons ----------
@@ -214,10 +223,19 @@ body.no-chrome .app-main { max-width: none; }
 
 /* ---------- Hero (Concept B) ---------- */
 .hero {
+  position: relative; overflow: hidden;
   display: flex; align-items: center; gap: 30px;
   background: var(--hero-grad); border: 1px solid var(--line); border-radius: 16px;
   padding: 32px 36px; margin-bottom: 22px; box-shadow: var(--shadow);
 }
+/* Diagonal hatch texture — the exact overlay used on every landing-page photo
+   panel, reused here so the dashboard reads as the same design family. */
+.hero::before {
+  content: ''; position: absolute; inset: 0; pointer-events: none; z-index: 0;
+  background: repeating-linear-gradient(45deg, var(--accent) 0 1px, transparent 1px 10px);
+  opacity: .06;
+}
+.hero > * { position: relative; z-index: 1; }
 .hero h1 { font-size: clamp(26px, 3.6vw, 36px); font-weight: 800; letter-spacing: -.02em; margin: 0 0 4px; }
 .dash-date { color: var(--muted); font-size: 14px; margin: 0 0 20px; }
 .next-chip { display: flex; align-items: center; gap: 13px; background: var(--card); border: 1px solid var(--line); border-radius: 15px; padding: 13px 17px; margin-bottom: 20px; max-width: 430px; }
@@ -230,23 +248,33 @@ body.no-chrome .app-main { max-width: none; }
 .ring-prog { stroke: var(--accent); transition: stroke-dashoffset .6s ease; }
 .hero-ring-center { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
 .hrc-count { font-family: Inter, sans-serif; font-weight: 800; font-size: 25px; }
-.hrc-label { font-size: 9.5px; color: var(--muted); letter-spacing: .09em; font-weight: 700; }
+.hrc-label { font-size: 9.5px; color: var(--accent); letter-spacing: .16em; text-transform: uppercase; font-weight: 700; }
 
 /* ---------- Quote of the Day ---------- */
 .quote-card {
-  position: relative; border: none; background: var(--quote-grad); color: #fff;
+  position: relative; overflow: hidden; border: none; background: var(--quote-grad); color: #fff;
   border-radius: var(--radius); padding: 20px 26px 18px; margin-bottom: 30px;
   box-shadow: var(--shadow);
 }
 :root[data-theme="dark"] .quote-card { border: 1px solid var(--accent-tint-line); color: var(--ink); }
+/* Same hatch texture as the hero card and the landing's photo panels. */
+.quote-card::before {
+  content: ''; position: absolute; inset: 0; pointer-events: none; z-index: 0;
+  background: repeating-linear-gradient(45deg, rgba(255,255,255,.08) 0 1px, transparent 1px 10px);
+}
+.quote-card > * { position: relative; z-index: 1; }
 .quote-head { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
-.quote-mark { font-size: 30px; line-height: 1; color: var(--accent-2); font-weight: 800; font-family: Inter, sans-serif; }
+.quote-mark { font-size: 46px; line-height: .6; color: var(--accent-2); font-weight: 800; font-family: Inter, sans-serif; }
 :root[data-theme="dark"] .quote-mark { color: var(--accent); }
-.quote-title { font-size: 11px; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; opacity: .75; }
+.quote-title { font-size: 11px; font-weight: 800; letter-spacing: .18em; text-transform: uppercase; opacity: .8; }
 .quote-text { margin: 0; font-size: 17.5px; font-weight: 600; font-family: Inter, sans-serif; }
 .quote-author { margin: 5px 0 0; opacity: .7; font-size: 13px; }
 
 /* ---------- Sections / break grid ---------- */
+.sec-eyebrow {
+  font-size: 10.5px; font-weight: 700; letter-spacing: .22em; text-transform: uppercase;
+  color: var(--accent); margin: 0 0 8px;
+}
 .sec { font-size: 19px; font-weight: 800; letter-spacing: -.01em; margin: 0 0 4px; }
 .secsub { color: var(--muted); font-size: 13.5px; margin: 0 0 16px; }
 .dash-break-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 13px; margin-bottom: 26px; }
@@ -309,7 +337,10 @@ body.no-chrome .app-main { max-width: none; }
 #ring-progress { stroke-dasharray: 603.19; stroke-dashoffset: 603.19; transition: stroke-dashoffset .9s linear; }
 .ring-center { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
 .ring-time { font-family: Inter, sans-serif; font-size: 44px; font-weight: 800; letter-spacing: -.04em; line-height: 1; }
-.ring-label { color: var(--muted); font-size: 12.5px; margin-top: 6px; font-weight: 600; }
+.ring-label {
+  color: var(--accent); font-size: 11.5px; margin-top: 8px; font-weight: 700;
+  letter-spacing: .16em; text-transform: uppercase;
+}
 .step-dots { display: flex; justify-content: center; gap: 8px; margin: 10px 0 16px; }
 .step-dot { width: 9px; height: 9px; border-radius: 999px; background: var(--line); transition: background .2s ease, transform .2s ease; }
 .step-dot.active { background: var(--accent); transform: scale(1.25); }
