@@ -4,8 +4,8 @@
    All colors come from the tokens below — [data-theme] flips them. */
 
 :root {
-  --bg: #fffdf8;
-  --bg-tint: radial-gradient(circle at 85% -10%, #f0ddc4 0, transparent 34%), linear-gradient(180deg, #fffdf8, #f5f3ef 60%);
+  --bg: #f6f2ec; /* aligned with the landing page's paper tone */
+  --bg-tint: radial-gradient(circle at 85% -10%, #f0ddc4 0, transparent 34%), linear-gradient(180deg, #f6f2ec, #f1ece3 60%);
   --card: #ffffff;
   --card-2: #f5f3ef;
   --line: #e5e0d7;
@@ -61,7 +61,7 @@ body {
   line-height: 1.6;
 }
 a { color: inherit; }
-h1, h2, h3, .sora { font-family: Sora, Inter, sans-serif; }
+h1, h2, h3, .sora { font-family: Inter, sans-serif; letter-spacing: -.015em; }
 
 .frame { display: flex; min-height: 100vh; }
 
@@ -75,7 +75,7 @@ h1, h2, h3, .sora { font-family: Sora, Inter, sans-serif; }
   position: sticky; top: 0; height: 100vh; overflow-y: auto;
 }
 body.no-chrome .side { display: none; }
-.side-logo { font-family: Sora, sans-serif; font-weight: 800; font-size: 19px; letter-spacing: -.02em; text-decoration: none; margin: 0 10px 20px; }
+.side-logo { font-family: Inter, sans-serif; font-weight: 800; font-size: 19px; letter-spacing: -.02em; text-decoration: none; margin: 0 10px 20px; }
 .side-logo span { color: var(--accent); }
 .side-nav { display: grid; gap: 4px; margin-bottom: 18px; }
 .nav-item {
@@ -159,10 +159,12 @@ body.no-chrome .app-main { max-width: none; }
 .view { animation: fadeUp .35s ease; }
 @keyframes fadeUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
 
-/* ---------- Buttons ---------- */
+/* ---------- Buttons ----------
+   Matches the landing page's button language: square, uppercase, letterspaced. */
 .btn-primary, .btn-secondary, .btn-danger, .btn-dark {
-  border: 0; border-radius: 999px; padding: 13px 24px;
-  font: inherit; font-weight: 800; font-size: 14.5px; cursor: pointer;
+  border: 0; border-radius: 0; padding: 13px 24px;
+  font: inherit; font-weight: 700; font-size: 12.5px; cursor: pointer;
+  letter-spacing: .07em; text-transform: uppercase;
   display: inline-flex; align-items: center; justify-content: center; text-decoration: none;
   transition: transform .15s ease, box-shadow .15s ease, background .15s ease;
 }
@@ -191,7 +193,7 @@ body.no-chrome .app-main { max-width: none; }
 
 /* ---------- Welcome / Paywall ---------- */
 #view-welcome, #view-paywall { display: flex; justify-content: center; padding-top: 5vh; }
-.welcome-card { width: min(460px, 100%); background: var(--card); border: 1px solid var(--line); border-radius: 24px; box-shadow: var(--shadow); padding: 42px 38px; text-align: center; }
+.welcome-card { width: min(460px, 100%); background: var(--card); border: 1px solid var(--line); border-radius: 16px; box-shadow: var(--shadow); padding: 42px 38px; text-align: center; }
 .welcome-eyebrow { color: var(--accent); font-weight: 800; text-transform: uppercase; letter-spacing: .12em; font-size: 12px; margin: 0; }
 .welcome-title { font-size: 34px; letter-spacing: -.03em; line-height: 1.05; margin: 10px 0 12px; }
 .welcome-sub { color: var(--muted); font-size: 15px; margin: 0 0 26px; }
@@ -213,7 +215,7 @@ body.no-chrome .app-main { max-width: none; }
 /* ---------- Hero (Concept B) ---------- */
 .hero {
   display: flex; align-items: center; gap: 30px;
-  background: var(--hero-grad); border: 1px solid var(--line); border-radius: 26px;
+  background: var(--hero-grad); border: 1px solid var(--line); border-radius: 16px;
   padding: 32px 36px; margin-bottom: 22px; box-shadow: var(--shadow);
 }
 .hero h1 { font-size: clamp(26px, 3.6vw, 36px); font-weight: 800; letter-spacing: -.02em; margin: 0 0 4px; }
@@ -227,7 +229,7 @@ body.no-chrome .app-main { max-width: none; }
 .ring-track { stroke: var(--line); }
 .ring-prog { stroke: var(--accent); transition: stroke-dashoffset .6s ease; }
 .hero-ring-center { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-.hrc-count { font-family: Sora; font-weight: 800; font-size: 25px; }
+.hrc-count { font-family: Inter, sans-serif; font-weight: 800; font-size: 25px; }
 .hrc-label { font-size: 9.5px; color: var(--muted); letter-spacing: .09em; font-weight: 700; }
 
 /* ---------- Quote of the Day ---------- */
@@ -238,10 +240,10 @@ body.no-chrome .app-main { max-width: none; }
 }
 :root[data-theme="dark"] .quote-card { border: 1px solid var(--accent-tint-line); color: var(--ink); }
 .quote-head { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
-.quote-mark { font-size: 30px; line-height: 1; color: var(--accent-2); font-weight: 800; font-family: Sora; }
+.quote-mark { font-size: 30px; line-height: 1; color: var(--accent-2); font-weight: 800; font-family: Inter, sans-serif; }
 :root[data-theme="dark"] .quote-mark { color: var(--accent); }
 .quote-title { font-size: 11px; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; opacity: .75; }
-.quote-text { margin: 0; font-size: 17.5px; font-weight: 600; font-family: Sora; }
+.quote-text { margin: 0; font-size: 17.5px; font-weight: 600; font-family: Inter, sans-serif; }
 .quote-author { margin: 5px 0 0; opacity: .7; font-size: 13px; }
 
 /* ---------- Sections / break grid ---------- */
@@ -259,7 +261,7 @@ body.no-chrome .app-main { max-width: none; }
 .dash-break-icon { width: 42px; height: 42px; border-radius: 13px; background: var(--accent-tint); color: var(--accent); display: flex; align-items: center; justify-content: center; margin-bottom: 11px; }
 .dash-break-icon svg { width: 22px; height: 22px; }
 .dash-break-card.done .dash-break-icon { background: color-mix(in srgb, var(--accent-2) 18%, transparent); color: var(--accent-2); }
-.dash-break-name { font-weight: 800; font-size: 15px; margin: 0 0 3px; font-family: Sora; }
+.dash-break-name { font-weight: 800; font-size: 15px; margin: 0 0 3px; font-family: Inter, sans-serif; }
 .dash-break-desc { color: var(--muted); font-size: 12px; margin: 0 0 9px; line-height: 1.45; }
 .dash-break-time { display: inline-block; background: var(--soft); padding: 3px 9px; border-radius: 999px; font-size: 11px; font-weight: 800; color: var(--accent); }
 .done-badge { position: absolute; top: 11px; right: 11px; font-size: 9.5px; font-weight: 800; letter-spacing: .05em; text-transform: uppercase; background: var(--accent-2); color: #3d2506; border-radius: 999px; padding: 3px 8px; }
@@ -297,7 +299,7 @@ body.no-chrome .app-main { max-width: none; }
 /* ---------- Break / learning player ---------- */
 .player-shell {
   width: min(560px, 100%); margin: 0 auto; text-align: center;
-  background: var(--card); border: 1px solid var(--line); border-radius: 26px;
+  background: var(--card); border: 1px solid var(--line); border-radius: 16px;
   box-shadow: var(--shadow); padding: 40px 34px;
 }
 .player-head h1 { font-size: 29px; letter-spacing: -.02em; margin: 0 0 6px; }
@@ -306,7 +308,7 @@ body.no-chrome .app-main { max-width: none; }
 .ring { width: 100%; height: 100%; transform: rotate(-90deg); }
 #ring-progress { stroke-dasharray: 603.19; stroke-dashoffset: 603.19; transition: stroke-dashoffset .9s linear; }
 .ring-center { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-.ring-time { font-family: Sora; font-size: 44px; font-weight: 800; letter-spacing: -.04em; line-height: 1; }
+.ring-time { font-family: Inter, sans-serif; font-size: 44px; font-weight: 800; letter-spacing: -.04em; line-height: 1; }
 .ring-label { color: var(--muted); font-size: 12.5px; margin-top: 6px; font-weight: 600; }
 .step-dots { display: flex; justify-content: center; gap: 8px; margin: 10px 0 16px; }
 .step-dot { width: 9px; height: 9px; border-radius: 999px; background: var(--line); transition: background .2s ease, transform .2s ease; }
@@ -403,9 +405,9 @@ body.no-chrome .app-main { max-width: none; }
 :root[data-theme="dark"] .splash { border: 1px solid var(--accent-tint-line); color: var(--ink); }
 @keyframes splashIn { from { opacity: 0; transform: scale(.94); } to { opacity: 1; transform: none; } }
 .splash-kicker { margin: 0 0 6px; font-size: 12px; font-weight: 800; letter-spacing: .18em; text-transform: uppercase; opacity: .75; }
-.splash-mark { font-family: Sora; font-size: 56px; line-height: 1; color: var(--accent-2); font-weight: 800; }
+.splash-mark { font-family: Inter, sans-serif; font-size: 56px; line-height: 1; color: var(--accent-2); font-weight: 800; }
 :root[data-theme="dark"] .splash-mark { color: var(--accent); }
-.splash-text { font-family: Sora; font-size: clamp(20px, 3vw, 27px); font-weight: 700; line-height: 1.35; margin: 6px 0 10px; }
+.splash-text { font-family: Inter, sans-serif; font-size: clamp(20px, 3vw, 27px); font-weight: 700; line-height: 1.35; margin: 6px 0 10px; }
 .splash-author { opacity: .75; font-size: 14px; margin: 0 0 30px; }
 
 /* ---------- Responsive ---------- */
