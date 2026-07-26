@@ -759,6 +759,26 @@ const ResetApp = {
     this.state.learningElapsed = learningState.elapsedForEpisode === episode.id ? (learningState.elapsed || 0) : 0;
     this.state.learningStarted = false;
     this.state.learningMode = null;
+    this.state.wordSegmentDone = false;
+
+    // Today's Word — a short vocabulary segment that opens the session,
+    // spoken in the SAME voice as this episode's own fixed recording.
+    const word = window.getTodaysWord?.(this.state.dayIndex);
+    const wordCard = document.getElementById('todays-word-card');
+    if (word && wordCard) {
+      const gender = window.AudioEngine?.episodeGender(episode.id) || 'female';
+      this.state.todaysWordSegment = {
+        src: window.AudioEngine.wordSrc(word.id, gender),
+        text: `Today's word is ${word.word}. ${word.definition} For example: ${word.example}`
+      };
+      document.getElementById('tw-word').textContent = word.word;
+      document.getElementById('tw-definition').textContent = word.definition;
+      document.getElementById('tw-example').textContent = `“${word.example}”`;
+      wordCard.style.display = 'block';
+    } else {
+      this.state.todaysWordSegment = null;
+      if (wordCard) wordCard.style.display = 'none';
+    }
 
     document.getElementById('learning-title').textContent = episode.title;
     document.getElementById('learning-category').textContent = episode.category;
@@ -826,21 +846,33 @@ const ResetApp = {
     }
 
     this.state.learningStarted = true;
-    const mode = window.AudioEngine?.playEpisode(episode, this.state.learningElapsed, {
-      onTimeUpdate: (current, duration) => {
-        this.state.learningElapsed = Math.floor(current);
-        this.renderLearningProgress(duration);
-        this.persistLearningElapsed();
-      },
-      onEnded: () => this.learningEnded()
-    });
-    this.state.learningMode = mode;
-    if (mode === 'tts') this.startLearningTicker();
 
-    const sourceEl = document.getElementById('learning-audio-source');
-    if (sourceEl) {
-      sourceEl.style.display = 'block';
-      sourceEl.textContent = `🔊 ${window.AudioEngine?.sourceLabel() || ''}`;
+    const beginEpisode = () => {
+      const mode = window.AudioEngine?.playEpisode(episode, this.state.learningElapsed, {
+        onTimeUpdate: (current, duration) => {
+          this.state.learningElapsed = Math.floor(current);
+          this.renderLearningProgress(duration);
+          this.persistLearningElapsed();
+        },
+        onEnded: () => this.learningEnded()
+      });
+      this.state.learningMode = mode;
+      if (mode === 'tts') this.startLearningTicker();
+
+      const sourceEl = document.getElementById('learning-audio-source');
+      if (sourceEl) {
+        sourceEl.style.display = 'block';
+        sourceEl.textContent = `🔊 ${window.AudioEngine?.sourceLabel() || ''}`;
+      }
+    };
+
+    // Today's Word plays once, before the episode — only on a genuinely
+    // fresh start (elapsed 0), never when resuming from a mid-episode pause.
+    if (this.state.learningElapsed === 0 && this.state.todaysWordSegment && !this.state.wordSegmentDone) {
+      this.state.wordSegmentDone = true;
+      window.AudioEngine.narrate(this.state.todaysWordSegment.src, this.state.todaysWordSegment.text, beginEpisode);
+    } else {
+      beginEpisode();
     }
   },
 

@@ -61,6 +61,17 @@ const QUOTES = {
     { text: "The wound is the place where the Light enters you.", author: "Rumi" },
     { text: "Between stimulus and response there is a space. In that space is our power to choose our response.", author: "Viktor Frankl" },
     { text: "Sometimes the most productive thing you can do is rest.", author: "Mark Black" }
+  ],
+
+  // Uplifting, encouraging verses only — rest, strength, peace. No judgment
+  // or fear-themed passages. King James Version (public domain).
+  faith: [
+    { text: "Come unto me, all ye that labour and are heavy laden, and I will give you rest.", author: "Matthew 11:28, KJV" },
+    { text: "Be still, and know that I am God.", author: "Psalm 46:10, KJV" },
+    { text: "They that wait upon the LORD shall renew their strength; they shall mount up with wings as eagles; they shall run, and not be weary; and they shall walk, and not faint.", author: "Isaiah 40:31, KJV" },
+    { text: "And the peace of God, which passeth all understanding, shall keep your hearts and minds through Christ Jesus.", author: "Philippians 4:7, KJV" },
+    { text: "I can do all things through Christ which strengtheneth me.", author: "Philippians 4:13, KJV" },
+    { text: "A merry heart doeth good like a medicine: but a broken spirit drieth the bones.", author: "Proverbs 17:22, KJV" }
   ]
 };
 
@@ -70,9 +81,13 @@ function getDailyQuote(category, dayIndex) {
   return cat[dayIndex % cat.length];
 }
 
-// Helper: get a general quote by day (for morning anchor quote)
+// Helper: get the morning anchor quote by day — blends the general pool with
+// the faith (Bible) quotes so both rotate through the app's single most-seen
+// quote slot (dashboard card + once-daily splash), without touching any of
+// the break-specific closing-quote categories (focus/tension/movement/etc).
 function getMorningQuote(dayIndex) {
-  return getDailyQuote('general', dayIndex);
+  const combined = [...QUOTES.general, ...QUOTES.faith];
+  return combined[dayIndex % combined.length];
 }
 
 // Helper: get all categories

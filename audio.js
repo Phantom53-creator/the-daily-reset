@@ -57,6 +57,18 @@ const AudioEngine = {
     return female;
   },
 
+  // Which gender an episode was actually recorded in — used so "Today's
+  // Word" (recorded in both genders) plays in the SAME voice as the episode
+  // it introduces, rather than jarringly switching partway through.
+  episodeGender(episodeId) {
+    return this.hasRecording(`audio/learning/${episodeId}-male.mp3`) && !this.hasRecording(`audio/learning/${episodeId}-female.mp3`)
+      ? 'male' : 'female';
+  },
+
+  wordSrc(wordId, gender) {
+    return `audio/words/${wordId}-${gender}.mp3`;
+  },
+
   // Closing-quote audio: one fixed intro line, plus one file per quote.
   quoteIntroSrc() {
     return `audio/quotes/quote-intro-${this.gender}.mp3`;

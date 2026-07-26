@@ -64,13 +64,14 @@ const ROOT = __dirname;
 // ---------- CLI args ----------
 
 function parseArgs(argv) {
-  const args = { breaks: null, learning: null, quotes: null, all: false, dryRun: false, force: false, provider: 'telnyx' };
+  const args = { breaks: null, learning: null, quotes: null, words: null, all: false, dryRun: false, force: false, provider: 'telnyx' };
   for (const raw of argv) {
     const [flag, ...rest] = raw.replace(/^--/, '').split('=');
     const value = rest.join('=');
     if (flag === 'all') args.all = true;
     else if (flag === 'breaks') args.breaks = value ? value.split(',').map(s => s.trim()) : 'all';
     else if (flag === 'learning') args.learning = value ? value.split(',').map(s => s.trim()) : 'all';
+    else if (flag === 'words') args.words = value ? value.split(',').map(s => s.trim()) : 'all';
     else if (flag === 'quotes') args.quotes = value ? value.split(',').map(s => s.trim()) : 'all';
     else if (flag === 'voice') args.voice = value;
     else if (flag === 'gender') args.gender = value;
@@ -110,6 +111,7 @@ function loadDataModule(filename, exportName) {
 const BREAKS = loadDataModule('breaks.js', 'BREAKS');
 const QUOTES = loadDataModule('quotes.js', 'QUOTES');
 const LEARNING_EPISODES = loadDataModule('learning.js', 'LEARNING_EPISODES');
+const WORDS = loadDataModule('words.js', 'WORDS');
 
 // Extract the exact quote lead-in line from app.js so it never drifts out of
 // sync with what the app actually speaks.
@@ -169,6 +171,17 @@ function buildCatalog() {
     });
   }
 
+  for (const w of WORDS) {
+    items.push({
+      kind: 'word',
+      id: w.id,
+      groupId: w.id,
+      label: `Today's Word — ${w.word}`,
+      filePath: g => `audio/words/${w.id}-${g}.mp3`,
+      text: `Today's word is ${w.word}. ${w.definition} For example: ${w.example}`
+    });
+  }
+
   return items;
 }
 
@@ -191,6 +204,7 @@ function selectItems(catalog, args) {
   pick('break', args.breaks);
   pick('quote', args.quotes);
   pick('learning', args.learning);
+  pick('word', args.words);
 
   // De-dupe (a break/group selector can match the same item twice)
   const seen = new Set();
@@ -591,8 +605,8 @@ function updateComparisonIndex(label, provider, voice, gender, filePaths) {
 
 async function main() {
   const args = parseArgs(process.argv.slice(2));
-  if (!args.all && !args.breaks && !args.learning && !args.quotes) {
-    printUsageAndExit('Nothing selected — pass --all, --breaks, --learning, and/or --quotes.');
+  if (!args.all && !args.breaks && !args.learning && !args.quotes && !args.words) {
+    printUsageAndExit('Nothing selected — pass --all, --breaks, --learning, --quotes, and/or --words.');
   }
   if (!args.gender || !['female', 'male'].includes(args.gender)) {
     printUsageAndExit('--gender=female or --gender=male is required (determines the output filename).');
