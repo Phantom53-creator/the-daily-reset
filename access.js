@@ -5,6 +5,31 @@
 // (An earlier version gated this behind a 5-day trial + Stripe paywall — full
 // access is free while the product is being built out.)
 
+// --- Lead capture (Supabase) ---
+// The publishable key below is designed to be public (Supabase's own model —
+// it can only INSERT into `leads`, per the RLS policy set on that table; it
+// cannot read, update, or delete anything). No secret lives in this file.
+const SUPABASE_CONFIG = {
+  url: 'https://nbhrrozrypetprnowzbx.supabase.co',
+  publishableKey: 'sb_publishable_D75EX5UMfSJ4OHsXHHxdSg_mjtaUxQy'
+};
+
+// Fire-and-forget — never blocks or breaks signup if this fails (offline,
+// ad-blocker, Supabase hiccup, etc.). The user always gets into the app.
+function captureLead(name, email) {
+  const source = window.location.pathname.endsWith('app.html') ? 'app' : 'landing';
+  fetch(`${SUPABASE_CONFIG.url}/rest/v1/leads`, {
+    method: 'POST',
+    headers: {
+      'apikey': SUPABASE_CONFIG.publishableKey,
+      'Authorization': `Bearer ${SUPABASE_CONFIG.publishableKey}`,
+      'Content-Type': 'application/json',
+      'Prefer': 'return=minimal'
+    },
+    body: JSON.stringify({ name, email, source })
+  }).catch(() => { /* best-effort only */ });
+}
+
 // --- Reviewer access codes ---
 // Permanent, unrestricted access. Add/remove codes here.
 // Reviewers get: no daily episode cap, episode browser, and a REVIEWER badge.
@@ -32,6 +57,7 @@ function startTrial(name, email) {
     startDate: new Date().toISOString()
   };
   localStorage.setItem('reset_trial', JSON.stringify(trialData));
+  captureLead(name, email);
   return trialData;
 }
 
