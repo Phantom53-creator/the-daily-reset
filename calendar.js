@@ -47,18 +47,21 @@ const CalendarReminders = {
     return chunks.join('\r\n');
   },
 
-  // Build one recurring VEVENT for a break slot
+  // Build one recurring VEVENT for a break slot (or the learning slot, kind:'learning')
   buildEvent(slot, index) {
     const start = this.firstOccurrence(slot.time);
     const b = window.BREAKS?.[slot.breakId];
-    const durationMin = b ? Math.round(b.duration / 60) : 5;
+    const isLearning = slot.kind === 'learning';
+    const durationMin = isLearning ? 5 : (b ? Math.round(b.duration / 60) : 5);
     const end = new Date(start.getTime() + durationMin * 60000);
     const now = new Date();
     const uid = `reset-${index}-${slot.time.replace(':', '')}-${start.getFullYear()}@thedailyreset`;
     const title = `The Daily Reset — ${slot.label}`;
-    const desc = b
-      ? `Time for your ${b.name} break (${durationMin} min). ${b.description} Open the app: ${this.appUrl()}`
-      : `Time for your reset. Open the app: ${this.appUrl()}`;
+    const desc = isLearning
+      ? `Time for today's Lunch Break Learning episode — one idea, one story, one takeaway (3–5 min). Open the app: ${this.appUrl()}`
+      : b
+        ? `Time for your ${b.name} break (${durationMin} min). ${b.description} Open the app: ${this.appUrl()}`
+        : `Time for your reset. Open the app: ${this.appUrl()}`;
 
     return [
       'BEGIN:VEVENT',

@@ -47,8 +47,8 @@ const ResetApp = {
     this.bindTheme();
     this.bindSidebarNav();
     this.bindPlanEditor();
+    this.bindSidebarLearning();
     this.bindWelcome();
-    this.bindPaywall();
     this.bindDashboard();
     this.bindPlayer();
     this.bindLearning();
@@ -88,16 +88,15 @@ const ResetApp = {
   route() {
     const level = window.getAccessLevel();
     if (level === 'none') this.showView('welcome');
-    else if (level === 'expired') this.showView('paywall');
     else this.showDashboard();
   },
 
   showView(name) {
     document.querySelectorAll('.view').forEach(v => { v.style.display = 'none'; });
     const view = document.getElementById(`view-${name}`);
-    if (view) view.style.display = ''; // revert to stylesheet display (flex for welcome/paywall)
+    if (view) view.style.display = ''; // revert to stylesheet display (flex for welcome)
     document.querySelectorAll('.nav-item').forEach(b => b.classList.toggle('active', b.dataset.view === name));
-    document.body.classList.toggle('no-chrome', name === 'welcome' || name === 'paywall');
+    document.body.classList.toggle('no-chrome', name === 'welcome');
     window.scrollTo(0, 0);
   },
 
@@ -115,6 +114,9 @@ const ResetApp = {
   bindSidebarNav() {
     document.getElementById('nav-dashboard')?.addEventListener('click', () => { this.leavePlayers(); this.showDashboard(); });
     document.getElementById('nav-settings')?.addEventListener('click', () => { this.leavePlayers(); this.showSettings(); });
+    document.getElementById('nav-upgrade')?.addEventListener('click', () => {
+      this.showNotice('More on the way', 'Additional features are coming soon. Full access is free for now — enjoy everything The Daily Reset already offers.');
+    });
   },
 
   renderAccessPill() {
@@ -131,16 +133,9 @@ const ResetApp = {
     if (level === 'reviewer') {
       pill.classList.add('pill-reviewer');
       pill.textContent = `★ ${window.getReviewerData().label.toUpperCase()}`;
-    } else if (level === 'paid') {
+    } else if (level === 'free') {
       pill.classList.add('pill-paid');
-      pill.textContent = 'FULL ACCESS';
-    } else if (level === 'trial') {
-      const days = window.trialDaysRemaining();
-      pill.classList.add('pill-trial');
-      pill.textContent = `TRIAL — ${days} DAY${days === 1 ? '' : 'S'} LEFT`;
-    } else if (level === 'expired') {
-      pill.classList.add('pill-expired');
-      pill.textContent = 'TRIAL ENDED';
+      pill.textContent = 'FREE ACCESS';
     } else {
       pill.style.display = 'none';
     }
@@ -235,12 +230,6 @@ const ResetApp = {
       this.showDashboard();
     });
     this.bindCodeForm('welcome-code-link', 'welcome-code-form', 'welcome-code', 'welcome-code-error');
-  },
-
-  bindPaywall() {
-    document.getElementById('paywall-monthly')?.addEventListener('click', () => window.goToStripePayment('monthly'));
-    document.getElementById('paywall-annual')?.addEventListener('click', () => window.goToStripePayment('annual'));
-    this.bindCodeForm('paywall-code-link', 'paywall-code-form', 'paywall-code', 'paywall-code-error');
   },
 
   bindCodeForm(linkId, formId, inputId, errorId) {
@@ -489,6 +478,10 @@ const ResetApp = {
   // calendar then fires the alerts on every device, even when the app is closed.
   downloadCalendar(hintId) {
     const slots = this.getTodaysPlan().map(s => ({ time: s.time, label: s.label, breakId: s.breakId }));
+    if (document.getElementById('learning-toggle')?.checked) {
+      const lt = document.getElementById('learning-time-input')?.value || '12:30';
+      slots.push({ time: lt, label: 'Lunch Break Learning', kind: 'learning' });
+    }
     window.CalendarReminders?.download(slots);
     const times = slots.map(s => this.formatClock(s.time)).join(', ');
     if (hintId) {
@@ -938,11 +931,6 @@ const ResetApp = {
         this.openLearning();
       });
     });
-    document.getElementById('upgrade-close')?.addEventListener('click', () => {
-      document.getElementById('upgrade-modal').style.display = 'none';
-    });
-    document.getElementById('upgrade-monthly')?.addEventListener('click', () => window.goToStripePayment('monthly'));
-    document.getElementById('upgrade-annual')?.addEventListener('click', () => window.goToStripePayment('annual'));
   },
 
   openTopicPicker() { document.getElementById('topic-modal').style.display = 'flex'; },
@@ -988,11 +976,16 @@ const ResetApp = {
   bindSettings() {
     document.getElementById('settings-back')?.addEventListener('click', () => this.showDashboard());
 
-    ['slot-1', 'slot-2', 'slot-3', 'learning-time-input'].forEach(id => {
+    ['slot-1', 'slot-2', 'slot-3'].forEach(id => {
       document.getElementById(id)?.addEventListener('change', () => {
         this.saveSettings();
         if (this.isDashboardVisible()) { this.renderHero(); this.renderTimeline(); }
       });
+    });
+    document.getElementById('learning-time-input')?.addEventListener('change', (e) => {
+      this.syncLearningUI(undefined, e.target.value);
+      this.saveSettings();
+      if (this.isDashboardVisible()) { this.renderHero(); this.renderTimeline(); }
     });
 
     document.getElementById('narration-toggle')?.addEventListener('change', (e) => {
@@ -1000,8 +993,8 @@ const ResetApp = {
       this.saveSettings();
     });
 
-    document.getElementById('learning-toggle')?.addEventListener('change', () => {
-      this.toggleLearningConfig();
+    document.getElementById('learning-toggle')?.addEventListener('change', (e) => {
+      this.syncLearningUI(e.target.checked, undefined);
       this.saveSettings();
     });
 
@@ -1051,9 +1044,7 @@ const ResetApp = {
     const level = window.getAccessLevel();
     const accessText = {
       reviewer: 'Reviewer — permanent, unrestricted',
-      paid: 'Full Access',
-      trial: `Free trial — ${window.trialDaysRemaining()} day(s) left`,
-      expired: 'Trial ended',
+      free: 'Free access',
       none: '—'
     }[level];
     const rows = [];
@@ -1072,6 +1063,35 @@ const ResetApp = {
     });
   },
 
+  // The sidebar's own Lunch Break Learning row mirrors the Settings-page
+  // controls (same underlying reset_settings keys) so either one can be used
+  // interchangeably and they never drift out of sync.
+  syncLearningUI(enabled, time) {
+    const e = enabled !== undefined ? enabled : document.getElementById('learning-toggle')?.checked;
+    const t = time || document.getElementById('learning-time-input')?.value || '12:30';
+    ['learning-toggle', 'sidebar-learning-toggle'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.checked = e;
+    });
+    ['learning-time-input', 'sidebar-learning-time-input'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.value = t;
+    });
+    this.toggleLearningConfig();
+    if (this.isDashboardVisible()) { this.renderTimeline(); this.renderLearningCard(); }
+  },
+
+  bindSidebarLearning() {
+    document.getElementById('sidebar-learning-toggle')?.addEventListener('change', (e) => {
+      this.syncLearningUI(e.target.checked, undefined);
+      this.saveSettings();
+    });
+    document.getElementById('sidebar-learning-time-input')?.addEventListener('change', (e) => {
+      this.syncLearningUI(undefined, e.target.value);
+      this.saveSettings();
+    });
+  },
+
   toggleLearningConfig() {
     const enabled = document.getElementById('learning-toggle')?.checked;
     const config = document.getElementById('learning-config');
@@ -1086,7 +1106,7 @@ const ResetApp = {
       if (el.type === 'checkbox') el.checked = !!value;
       else el.value = value;
     });
-    this.toggleLearningConfig();
+    this.syncLearningUI();
     const narrationOn = document.getElementById('narration-toggle')?.checked;
     window.AudioEngine?.setEnabled(narrationOn !== false);
     this.syncVoiceGenderUI(window.AudioEngine?.gender || 'female');
