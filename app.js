@@ -259,11 +259,17 @@ const ResetApp = {
   bindDashboard() {
     document.getElementById('hero-start')?.addEventListener('click', () => this.startNextPlannedBreak());
     document.getElementById('bottom-start-break')?.addEventListener('click', () => this.startNextPlannedBreak());
-    document.getElementById('dash-learning-btn')?.addEventListener('click', () => {
+    const openAndPlayLearning = () => {
       const enabled = document.getElementById('learning-toggle')?.checked;
       if (!enabled) { this.showSettings(); return; }
+      // Only auto-play if a topic is already chosen — otherwise openLearning()
+      // shows the topic picker instead, and there's nothing to play yet.
+      const hasTopic = !!this.getLearningState().topicGroup;
       this.openLearning();
-    });
+      if (hasTopic) this.playLearning();
+    };
+    document.getElementById('dash-learning-btn')?.addEventListener('click', openAndPlayLearning);
+    document.getElementById('dash-learning-play-icon')?.addEventListener('click', openAndPlayLearning);
     document.getElementById('dash-edit-schedule')?.addEventListener('click', () => {
       const plan = document.getElementById('plan-editor');
       if (!plan) return;
@@ -458,7 +464,7 @@ const ResetApp = {
     const episode = learningState.topicGroup ? this.getTodaysShuffledEpisode(learningState) : null;
     if (episode) {
       teaser.innerHTML = `<strong>Today:</strong> ${episode.title} — ${episode.oneIdea}`;
-      btn.textContent = "Open today's episode";
+      btn.textContent = '▶ Play today\'s episode';
     } else {
       teaser.textContent = 'Pick a topic group to start your daily episodes.';
       btn.textContent = 'Choose topics';
@@ -866,11 +872,23 @@ const ResetApp = {
       }
     };
 
+    // A short breathing gap between the word ending and the episode
+    // starting — and re-checks learningPlaying so a Pause pressed during
+    // the word (or during this very gap) doesn't get overridden by the
+    // episode starting anyway once the word's onEnd eventually fires.
+    const startEpisodeAfterGap = () => {
+      if (!this.state.learningPlaying) return;
+      setTimeout(() => {
+        if (!this.state.learningPlaying) return;
+        beginEpisode();
+      }, 650);
+    };
+
     // Today's Word plays once, before the episode — only on a genuinely
     // fresh start (elapsed 0), never when resuming from a mid-episode pause.
     if (this.state.learningElapsed === 0 && this.state.todaysWordSegment && !this.state.wordSegmentDone) {
       this.state.wordSegmentDone = true;
-      window.AudioEngine.narrate(this.state.todaysWordSegment.src, this.state.todaysWordSegment.text, beginEpisode);
+      window.AudioEngine.narrate(this.state.todaysWordSegment.src, this.state.todaysWordSegment.text, startEpisodeAfterGap);
     } else {
       beginEpisode();
     }

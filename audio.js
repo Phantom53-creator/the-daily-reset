@@ -82,6 +82,22 @@ const AudioEngine = {
     return this.mode === 'recorded' ? 'Studio audio' : 'Device voice';
   },
 
+  // Belt-and-braces for the fallback-to-TTS paths below: a recorded <audio>
+  // element's play() promise can reject (autoplay policy, a transient glitch)
+  // even after playback has actually started — falling back to TTS at that
+  // point without silencing the old element first would let both play at
+  // once (heard as an "echo"/two voices, and a Pause that only stops one of
+  // them). Always force the abandoned element fully quiet before switching.
+  silenceAbandonedPlayer() {
+    if (this.player) {
+      this.player.pause();
+      this.player.onended = null;
+      this.player.onerror = null;
+      this.player.ontimeupdate = null;
+      this.player = null;
+    }
+  },
+
   // --- Short narration (break steps, cues) ---
   // Plays the recorded clip if available, otherwise speaks the text.
 
@@ -95,10 +111,12 @@ const AudioEngine = {
       this.player.onended = () => { if (onEnd) onEnd(); };
       this.player.onerror = () => {
         // File listed in manifest but missing/unplayable — fall back to voice
+        this.silenceAbandonedPlayer();
         this.mode = 'tts';
         window.VoiceSystem?.speak(text, onEnd, rate);
       };
       this.player.play().catch(() => {
+        this.silenceAbandonedPlayer();
         this.mode = 'tts';
         window.VoiceSystem?.speak(text, onEnd, rate);
       });
@@ -129,6 +147,7 @@ const AudioEngine = {
       };
       this.player.onended = () => { if (this.onEnded) this.onEnded(); };
       this.player.play().catch(() => {
+        this.silenceAbandonedPlayer();
         this.mode = 'tts';
         window.VoiceSystem?.speak(episode.transcript, this.onEnded);
       });

@@ -65,6 +65,7 @@
   <button class="tab active" id="tab-breaks" onclick="showTab('breaks')">Break Narrations</button>
   <button class="tab" id="tab-quotes" onclick="showTab('quotes')">Closing Quotes</button>
   <button class="tab" id="tab-learning" onclick="showTab('learning')">Learning Episodes</button>
+  <button class="tab" id="tab-words" onclick="showTab('words')">Today's Word</button>
 </div>
 
 <div class="container">
@@ -82,12 +83,14 @@
   <div id="breaksPanel"></div>
   <div id="quotesPanel" class="hidden"></div>
   <div id="learningPanel" class="hidden"></div>
+  <div id="wordsPanel" class="hidden"></div>
 
 </div>
 
 <script src="breaks.js"></script>
 <script src="quotes.js"></script>
 <script src="learning.js"></script>
+<script src="words.js"></script>
 <script>
 const synth = window.speechSynthesis;
 let voices = [];
@@ -249,6 +252,7 @@ function showTab(tab) {
   document.getElementById('breaksPanel').classList.toggle('hidden', tab !== 'breaks');
   document.getElementById('quotesPanel').classList.toggle('hidden', tab !== 'quotes');
   document.getElementById('learningPanel').classList.toggle('hidden', tab !== 'learning');
+  document.getElementById('wordsPanel').classList.toggle('hidden', tab !== 'words');
 }
 
 // Create a card element. `forFile` names the source file the script comes
@@ -416,6 +420,31 @@ function renderQuotes() {
   }
 }
 
+// Render Today's Word scripts. The reviewable text here is the EXACT
+// narration sent to the voice generator — edits made here map 1:1 onto what
+// gets re-recorded, unlike the break-narration cards above.
+function renderWords() {
+  const panel = document.getElementById('wordsPanel');
+  panel.innerHTML = '';
+  const words = window.WORDS;
+  if (!words) { panel.innerHTML = '<p style="color:#c00;">Error: words.js not loaded.</p>'; return; }
+
+  const header = document.createElement('div');
+  header.className = 'section-header';
+  header.textContent = '📖 Today\'s Word — 30 words, one per day';
+  panel.appendChild(header);
+  const desc = document.createElement('div');
+  desc.className = 'section-desc';
+  desc.textContent = 'Plays as the opening of every Lunch Break Learning session, in the same voice as that day\'s episode. Mark which words to keep, flag ones to swap out, and edit the wording directly if a definition or example needs work.';
+  panel.appendChild(desc);
+
+  words.forEach((w, i) => {
+    const scriptId = w.id;
+    const spoken = `Today's word is ${w.word}. ${w.definition} For example: ${w.example}`;
+    panel.appendChild(createCard(scriptId, (i + 1) + '. ' + w.word, '', spoken, 12, 'words.js'));
+  });
+}
+
 // Export the full review state to a JSON file — hand this back for edits
 // and change-requests to be applied to breaks.js / quotes.js / learning.js.
 function exportReview() {
@@ -457,6 +486,7 @@ document.getElementById('exportBtn').addEventListener('click', exportReview);
 renderBreaks();
 renderQuotes();
 renderLearning();
+renderWords();
 updateSummary();
 </script>
 </body>

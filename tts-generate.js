@@ -568,7 +568,7 @@ async function generateBreakStep(item, provider, apiKey, voice, speed, countSpee
 
 function regenerateManifest() {
   const files = [];
-  for (const sub of ['breaks', 'quotes', 'learning']) {
+  for (const sub of ['breaks', 'quotes', 'learning', 'words']) {
     const dir = path.join(ROOT, 'audio', sub);
     if (!fs.existsSync(dir)) continue;
     for (const f of fs.readdirSync(dir)) {
@@ -581,6 +581,7 @@ function regenerateManifest() {
 // Naming: audio/breaks/<breakId>-step<N>-<gender>.mp3
 //         audio/quotes/quote-<category>-<index>-<gender>.mp3 | quote-intro-<gender>.mp3
 //         audio/learning/<episodeId>-<gender>.mp3     (<gender> = female | male)
+//         audio/words/<wordId>-<gender>.mp3
 window.AUDIO_MANIFEST = [
 ${files.map(f => `  '${f}',`).join('\n')}
 ];
