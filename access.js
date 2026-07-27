@@ -30,6 +30,28 @@ function captureLead(name, email) {
   }).catch(() => { /* best-effort only */ });
 }
 
+// In-app review submission — separate insert-only table from `leads`, same
+// trusted RLS model (anon can INSERT, never read/update/delete). Kept as its
+// own table rather than an UPDATE onto the lead's row so the public key never
+// needs update rights on anything. Shane matches reviews to leads by email,
+// and flips `reviewed_by_shane` himself in the Supabase table editor.
+function submitReview({ name, email, rating, reviewText, marketingConsent }) {
+  return fetch(`${SUPABASE_CONFIG.url}/rest/v1/reviews`, {
+    method: 'POST',
+    headers: {
+      'apikey': SUPABASE_CONFIG.publishableKey,
+      'Authorization': `Bearer ${SUPABASE_CONFIG.publishableKey}`,
+      'Content-Type': 'application/json',
+      'Prefer': 'return=minimal'
+    },
+    body: JSON.stringify({
+      name, email, rating,
+      review_text: reviewText || null,
+      marketing_consent: marketingConsent
+    })
+  });
+}
+
 // --- Reviewer access codes ---
 // Permanent, unrestricted access. Add/remove codes here.
 // Reviewers get: no daily episode cap, episode browser, and a REVIEWER badge.
@@ -143,4 +165,5 @@ if (typeof window !== 'undefined') {
   window.getAccessLevel = getAccessLevel;
   window.getUserName = getUserName;
   window.getUserFirstName = getUserFirstName;
+  window.submitReview = submitReview;
 }

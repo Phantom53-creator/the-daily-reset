@@ -55,6 +55,7 @@ const ResetApp = {
     this.bindSettings();
     this.bindModals();
     this.bindNotice();
+    this.bindReviewModal();
     this.bindReminders();
     this.loadSettings();
     this.renderPlanEditor();
@@ -295,6 +296,7 @@ const ResetApp = {
     this.renderLearningCard();
     this.showView('dashboard');
     this.maybeShowQuoteSplash();
+    this.maybeShowReviewNudge();
   },
 
   renderHero() {
@@ -369,6 +371,102 @@ const ResetApp = {
     document.getElementById('splash-quote-text').textContent = quote.text;
     document.getElementById('splash-quote-author').textContent = `— ${quote.author}`;
     document.getElementById('quote-splash').style.display = 'flex';
+  },
+
+  // ---------- Review nudge ----------
+  // Shown on the dashboard once someone has had the app for 14+ days and
+  // hasn't reviewed yet. "Maybe later" only hides it for this page load (it
+  // returns next visit); "Don't ask again" persists permanently.
+
+  getReviewState() {
+    return JSON.parse(localStorage.getItem('reset_review_state') || '{}');
+  },
+
+  saveReviewState(state) {
+    localStorage.setItem('reset_review_state', JSON.stringify(state));
+  },
+
+  maybeShowReviewNudge() {
+    const nudge = document.getElementById('review-nudge');
+    if (!nudge) return;
+    const trial = window.getTrialData?.();
+    const state = this.getReviewState();
+    const eligible = trial?.startDate
+      && !window.isReviewer?.()
+      && !state.submitted
+      && !state.dismissed
+      && (Date.now() - new Date(trial.startDate).getTime()) >= 14 * 86400000;
+    nudge.style.display = eligible ? 'flex' : 'none';
+  },
+
+  bindReviewModal() {
+    document.getElementById('review-nudge-open')?.addEventListener('click', () => this.openReviewModal());
+    document.getElementById('review-nudge-later')?.addEventListener('click', () => {
+      document.getElementById('review-nudge').style.display = 'none';
+    });
+    document.getElementById('review-nudge-dismiss')?.addEventListener('click', () => {
+      this.saveReviewState({ ...this.getReviewState(), dismissed: true });
+      document.getElementById('review-nudge').style.display = 'none';
+    });
+
+    document.getElementById('review-close')?.addEventListener('click', () => this.closeReviewModal());
+
+    let selectedRating = 0;
+    let selectedConsent = null;
+
+    document.querySelectorAll('#review-stars .star-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        selectedRating = parseInt(btn.dataset.star, 10);
+        document.querySelectorAll('#review-stars .star-btn').forEach(b => {
+          b.classList.toggle('active', parseInt(b.dataset.star, 10) <= selectedRating);
+        });
+        document.getElementById('review-error').style.display = 'none';
+      });
+    });
+
+    document.querySelectorAll('.consent-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        selectedConsent = btn.dataset.value === 'yes';
+        document.querySelectorAll('.consent-btn').forEach(b => b.classList.toggle('active', b === btn));
+      });
+    });
+
+    document.getElementById('review-submit')?.addEventListener('click', () => {
+      if (!selectedRating) {
+        document.getElementById('review-error').style.display = 'block';
+        return;
+      }
+      const trial = window.getTrialData?.() || {};
+      const reviewText = document.getElementById('review-text').value.trim();
+      window.submitReview?.({
+        name: trial.name || null,
+        email: trial.email || null,
+        rating: selectedRating,
+        reviewText,
+        marketingConsent: selectedConsent
+      });
+      this.saveReviewState({ ...this.getReviewState(), submitted: true });
+      this.closeReviewModal();
+      document.getElementById('review-thanks-modal').style.display = 'flex';
+      document.getElementById('review-nudge').style.display = 'none';
+      // Reset the form for next time (defensive — it won't normally reopen).
+      selectedRating = 0;
+      selectedConsent = null;
+      document.getElementById('review-text').value = '';
+      document.querySelectorAll('#review-stars .star-btn, .consent-btn').forEach(b => b.classList.remove('active'));
+    });
+
+    document.getElementById('review-thanks-ok')?.addEventListener('click', () => {
+      document.getElementById('review-thanks-modal').style.display = 'none';
+    });
+  },
+
+  openReviewModal() {
+    document.getElementById('review-modal').style.display = 'flex';
+  },
+
+  closeReviewModal() {
+    document.getElementById('review-modal').style.display = 'none';
   },
 
   renderBreakGrid() {

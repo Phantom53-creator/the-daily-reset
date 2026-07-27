@@ -235,13 +235,41 @@ body.no-chrome .app-main { max-width: none; }
 .welcome-sub { color: var(--muted); font-size: 15px; margin: 0 0 26px; }
 .welcome-form { text-align: left; display: grid; gap: 14px; }
 .form-field label { display: block; font-size: 13px; font-weight: 700; margin-bottom: 6px; }
-.form-field input, .code-entry input, .reviewer-tools select {
+.form-field input, .form-field textarea, .code-entry input, .reviewer-tools select {
   width: 100%; padding: 12px 14px; border-radius: 12px; border: 1px solid var(--line);
   font: inherit; font-size: 15px; background: var(--bg); color: var(--ink);
 }
-.form-field input:focus, .code-entry input:focus { outline: 2px solid var(--accent); outline-offset: 0; border-color: var(--accent); }
+.form-field textarea { resize: vertical; min-height: 80px; }
+.form-field input:focus, .form-field textarea:focus, .code-entry input:focus { outline: 2px solid var(--accent); outline-offset: 0; border-color: var(--accent); }
 .form-error { color: var(--danger); font-size: 13px; font-weight: 600; margin: 0; }
 .form-success { color: var(--accent); font-size: 13px; font-weight: 700; margin: 0; }
+
+/* Review nudge banner (dashboard) */
+.review-nudge {
+  display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap;
+  background: var(--card); border: 1px solid var(--line); border-radius: 16px;
+  padding: 16px 20px; margin-bottom: 18px;
+}
+.review-nudge-text strong { display: block; font-size: 14.5px; }
+.review-nudge-text span { color: var(--muted); font-size: 13px; }
+.review-nudge-actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.review-nudge-dismiss {
+  background: none; border: none; color: var(--muted); font-size: 12.5px;
+  text-decoration: underline; cursor: pointer; padding: 0; font: inherit;
+}
+
+/* Review modal — star rating + consent toggle */
+.review-stars { display: flex; gap: 6px; justify-content: center; margin-bottom: 18px; }
+.star-btn { background: none; border: none; font-size: 32px; line-height: 1; color: var(--line); cursor: pointer; padding: 0; }
+.star-btn.active { color: #f5a623; }
+.review-consent { margin: 18px 0 8px; }
+.review-consent-q { font-size: 13.5px; font-weight: 700; margin: 0 0 8px; }
+.review-consent-toggle { display: flex; gap: 8px; }
+.consent-btn {
+  flex: 1; padding: 10px; border: 1px solid var(--line); border-radius: 10px;
+  background: var(--bg); font: inherit; font-weight: 700; cursor: pointer; color: var(--muted);
+}
+.consent-btn.active { background: var(--accent); border-color: var(--accent); color: #fff; }
 .welcome-divider { display: flex; align-items: center; gap: 12px; color: var(--muted); font-size: 12px; margin: 20px 0 8px; }
 .welcome-divider::before, .welcome-divider::after { content: ""; height: 1px; background: var(--line); flex: 1; }
 .welcome-note { margin-top: 20px; font-size: 13px; }

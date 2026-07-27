@@ -188,6 +188,18 @@
       <p class="quote-author" id="dash-quote-author"></p>
     </div>
 
+    <div class="review-nudge" id="review-nudge" style="display:none;">
+      <div class="review-nudge-text">
+        <strong>Enjoying The Daily Reset?</strong>
+        <span>We'd love a quick review — it takes less than a minute.</span>
+      </div>
+      <div class="review-nudge-actions">
+        <button class="btn-primary" id="review-nudge-open">Leave a review</button>
+        <button class="mini-btn mini-btn-ghost" id="review-nudge-later">Maybe later</button>
+        <button class="review-nudge-dismiss" id="review-nudge-dismiss">Don't ask again</button>
+      </div>
+    </div>
+
     <p class="sec-eyebrow">Micro Desk Breaks</p>
     <h2 class="sec">Your breaks</h2>
     <p class="secsub" id="breaks-sub">Pick one. Three to five minutes — back before anyone notices you were gone.</p>
@@ -397,6 +409,47 @@
     <h3 id="notice-title"></h3>
     <p class="modal-desc" id="notice-message"></p>
     <button class="btn-primary btn-block" id="notice-ok">OK</button>
+  </div>
+</div>
+
+<!-- ============ REVIEW MODAL ============ -->
+<div class="modal-overlay" id="review-modal" style="display:none;">
+  <div class="modal">
+    <button class="modal-close" id="review-close">×</button>
+    <h3>Leave a review</h3>
+    <p class="modal-desc">Your feedback helps shape what we build next.</p>
+
+    <div class="review-stars" id="review-stars">
+      <button type="button" class="star-btn" data-star="1" aria-label="1 star">★</button>
+      <button type="button" class="star-btn" data-star="2" aria-label="2 stars">★</button>
+      <button type="button" class="star-btn" data-star="3" aria-label="3 stars">★</button>
+      <button type="button" class="star-btn" data-star="4" aria-label="4 stars">★</button>
+      <button type="button" class="star-btn" data-star="5" aria-label="5 stars">★</button>
+    </div>
+
+    <div class="form-field">
+      <textarea id="review-text" rows="4" placeholder="Any negative points, or suggestions for what could be added or improved? (optional)"></textarea>
+    </div>
+
+    <div class="review-consent">
+      <p class="review-consent-q">Can we let you know about future updates or new apps we build?</p>
+      <div class="review-consent-toggle">
+        <button type="button" class="consent-btn" id="consent-yes" data-value="yes">Yes</button>
+        <button type="button" class="consent-btn" id="consent-no" data-value="no">No</button>
+      </div>
+    </div>
+
+    <p class="form-error" id="review-error" style="display:none;">Please pick a star rating first.</p>
+    <button class="btn-primary btn-block" id="review-submit">Submit review</button>
+  </div>
+</div>
+
+<!-- ============ REVIEW THANK-YOU MODAL ============ -->
+<div class="modal-overlay" id="review-thanks-modal" style="display:none;">
+  <div class="modal">
+    <h3>Thank you 🙏</h3>
+    <p class="modal-desc">Thank you for taking the time to review The Daily Reset — it genuinely helps. We'll only reach out about future updates if you said yes.</p>
+    <button class="btn-primary btn-block" id="review-thanks-ok">Close</button>
   </div>
 </div>
 
