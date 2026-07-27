@@ -173,6 +173,8 @@ window.AUDIO_MANIFEST = [
   'audio/quotes/quote-tension-4-male.mp3',
   'audio/quotes/quote-tension-5-female.mp3',
   'audio/quotes/quote-tension-5-male.mp3',
+  'audio/words/bridge-female.mp3',
+  'audio/words/bridge-male.mp3',
   'audio/words/w01-female.mp3',
   'audio/words/w01-male.mp3',
   'audio/words/w02-female.mp3',

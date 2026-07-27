@@ -118,6 +118,8 @@ const WORDS = loadDataModule('words.js', 'WORDS');
 const appJsSrc = fs.readFileSync(path.join(ROOT, 'app.js'), 'utf8');
 const introMatch = appJsSrc.match(/QUOTE_INTRO:\s*"((?:[^"\\]|\\.)*)"/);
 const QUOTE_INTRO = introMatch ? introMatch[1].replace(/\\"/g, '"').replace(/\\'/g, "'") : "To finish, here's a thought worth carrying with you.";
+const bridgeMatch = appJsSrc.match(/LEARNING_BRIDGE:\s*"((?:[^"\\]|\\.)*)"/);
+const LEARNING_BRIDGE = bridgeMatch ? bridgeMatch[1].replace(/\\"/g, '"').replace(/\\'/g, "'") : "Now, on to today's learning.";
 
 // ---------- Build the full catalog of generatable items ----------
 
@@ -181,6 +183,15 @@ function buildCatalog() {
       text: `Today's word is ${w.word}. ${w.definition} For example: ${w.example}`
     });
   }
+
+  items.push({
+    kind: 'word',
+    id: 'bridge',
+    groupId: 'bridge',
+    label: 'Learning bridge — Today\'s Word → episode transition',
+    filePath: g => `audio/words/bridge-${g}.mp3`,
+    text: LEARNING_BRIDGE
+  });
 
   return items;
 }

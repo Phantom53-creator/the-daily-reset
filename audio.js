@@ -69,6 +69,11 @@ const AudioEngine = {
     return `audio/words/${wordId}-${gender}.mp3`;
   },
 
+  // Spoken transition line between Today's Word and the episode.
+  bridgeSrc(gender) {
+    return `audio/words/bridge-${gender}.mp3`;
+  },
+
   // Closing-quote audio: one fixed intro line, plus one file per quote.
   quoteIntroSrc() {
     return `audio/quotes/quote-intro-${this.gender}.mp3`;

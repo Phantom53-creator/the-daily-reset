@@ -699,6 +699,12 @@ const ResetApp = {
   // A short lead-in, then the quote and author, at the calm general pace.
   QUOTE_INTRO: "To finish, here's a thought worth carrying with you.",
 
+  // Spoken transition between Today's Word and the episode itself — a clear,
+  // audible marker (not just a longer silence) that the word segment has
+  // ended and the actual lesson is starting. Recorded in both voices so it
+  // always matches that day's episode gender.
+  LEARNING_BRIDGE: "Now, on to today's learning.",
+
   speakClosingQuote(category, index, quote) {
     const narrationOn = document.getElementById('narration-toggle')?.checked;
     if (narrationOn === false || !window.AudioEngine?.enabled) return;
@@ -872,23 +878,32 @@ const ResetApp = {
       }
     };
 
-    // A short breathing gap between the word ending and the episode
-    // starting — and re-checks learningPlaying so a Pause pressed during
-    // the word (or during this very gap) doesn't get overridden by the
-    // episode starting anyway once the word's onEnd eventually fires.
+    // Today's Word → a beat of silence → a spoken bridge line ("Now, on to
+    // today's learning.") → another beat → the episode. The spoken line is
+    // the real signal that the word segment has ended (silence alone is too
+    // easy to miss over lunch); each hop re-checks learningPlaying so a
+    // Pause pressed anywhere in this sequence genuinely holds instead of
+    // the chain continuing on regardless once an onEnd eventually fires.
+    const afterGap = (fn, ms) => setTimeout(() => { if (this.state.learningPlaying) fn(); }, ms);
+
     const startEpisodeAfterGap = () => {
       if (!this.state.learningPlaying) return;
-      setTimeout(() => {
-        if (!this.state.learningPlaying) return;
-        beginEpisode();
-      }, 650);
+      afterGap(beginEpisode, 500);
+    };
+
+    const playBridgeThenEpisode = () => {
+      if (!this.state.learningPlaying) return;
+      afterGap(() => {
+        const gender = window.AudioEngine.episodeGender(episode.id);
+        window.AudioEngine.narrate(window.AudioEngine.bridgeSrc(gender), this.LEARNING_BRIDGE, startEpisodeAfterGap);
+      }, 500);
     };
 
     // Today's Word plays once, before the episode — only on a genuinely
     // fresh start (elapsed 0), never when resuming from a mid-episode pause.
     if (this.state.learningElapsed === 0 && this.state.todaysWordSegment && !this.state.wordSegmentDone) {
       this.state.wordSegmentDone = true;
-      window.AudioEngine.narrate(this.state.todaysWordSegment.src, this.state.todaysWordSegment.text, startEpisodeAfterGap);
+      window.AudioEngine.narrate(this.state.todaysWordSegment.src, this.state.todaysWordSegment.text, playBridgeThenEpisode);
     } else {
       beginEpisode();
     }
