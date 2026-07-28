@@ -71,7 +71,7 @@ const BREAKS = {
   eyes: {
     id: 'eyes',
     name: 'Eyes',
-    duration: 180,
+    duration: 121,
     icon: '👁',
     description: 'The 20-20-20 rule and palming technique to reduce digital eye strain.',
     source: '[S2] American Optometric Association',
@@ -135,7 +135,7 @@ const BREAKS = {
   shoulders: {
     id: 'shoulders',
     name: 'Shoulders',
-    duration: 240,
+    duration: 199,
     icon: '👐',
     description: 'Seated tension release for trapezius and neck. Reverses forward-head strain.',
     source: '[S3] Hansraj, Surgical Technology International (2014)',
@@ -152,17 +152,16 @@ const BREAKS = {
           .build()
       },
       {
-        duration: 30,
+        duration: 29,
         instruction: 'Lift shoulders toward ears. Hold 5 seconds. Drop suddenly. Repeat 3 times.',
-        cues: cues(30)
-          .line('Lift both shoulders up toward your ears, and squeeze.', 5)
-          .countdown(5, { lead: 'Hold' })
-          .line('And drop. Let go.', 2)
-          .line('Again.', 2)
+        cues: cues(29)
+          .line('Lift both shoulders up toward your ears, and squeeze.', 4)
           .countdown(5, { lead: 'Hold' })
           .line('And drop.', 2)
-          .line('Last one.', 1)
           .countdown(5, { lead: 'Hold' })
+          .line('And drop.', 2)
+          .countdown(5, { lead: 'Hold' })
+          .line('And drop. Well done.', 3)
           .build()
       },
       {
@@ -302,7 +301,7 @@ const BREAKS = {
   breathe: {
     id: 'breathe',
     name: 'Breathe',
-    duration: 240,
+    duration: 200,
     icon: '🌬',
     description: 'Box breathing 4-4-4-4. Used by Navy SEALs. Validated for acute stress reduction.',
     source: '[S5] Jerath et al., Medical Hypotheses (2006)',
@@ -339,7 +338,7 @@ const BREAKS = {
   posture: {
     id: 'posture',
     name: 'Posture',
-    duration: 180,
+    duration: 188,
     icon: '🪑',
     description: 'Forward-head correction with chin tucks and scapular retraction. Opens the diaphragm.',
     source: '[S6] Kolar et al., Clinical Biomechanics (2012)',
@@ -356,28 +355,37 @@ const BREAKS = {
           .build()
       },
       {
-        duration: 30,
+        duration: 45,
         instruction: 'Chin tuck: Pull chin straight back (make a double chin). Hold 5 sec. Release. Repeat 5 times.',
-        cues: cues(30)
-          .line('Chin tucks.', 2)
+        cues: cues(45)
+          .line('Pull your chin straight back — make a double chin.', 4)
           .countdown(5, { lead: 'Hold' })
-          .countdown(5)
-          .countdown(5, { lead: 'Again' })
-          .countdown(5)
-          .countdown(5)
-          .line('Release.', 1)
+          .line('Release.', 2)
+          .countdown(5, { lead: 'Hold' })
+          .line('Release.', 2)
+          .countdown(5, { lead: 'Hold' })
+          .line('Release.', 2)
+          .countdown(5, { lead: 'Hold' })
+          .line('Release.', 2)
+          .countdown(5, { lead: 'Hold' })
+          .line('Release. Well done.', 3)
           .build()
       },
       {
-        duration: 30,
+        duration: 45,
         instruction: 'Scapular retraction: Squeeze shoulder blades together. Hold 5 sec. Release. Repeat 5 times.',
-        cues: cues(30)
-          .line('Squeeze your shoulder blades together.', 3)
+        cues: cues(45)
+          .line('Squeeze your shoulder blades together and down.', 4)
           .countdown(5, { lead: 'Hold' })
-          .countdown(5)
-          .countdown(5, { lead: 'Again' })
-          .countdown(5)
-          .countdown(5)
+          .line('Release.', 2)
+          .countdown(5, { lead: 'Hold' })
+          .line('Release.', 2)
+          .countdown(5, { lead: 'Hold' })
+          .line('Release.', 2)
+          .countdown(5, { lead: 'Hold' })
+          .line('Release.', 2)
+          .countdown(5, { lead: 'Hold' })
+          .line('Release. Let your shoulders settle.', 3)
           .build()
       },
       {
@@ -393,17 +401,20 @@ const BREAKS = {
           .build()
       },
       {
-        duration: 30,
+        duration: 28,
         instruction: 'Sit tall. Place one hand on belly. Breathe into belly 5 times (diaphragmatic breathing).',
-        cues: cues(30)
-          .line('Rest one hand gently on your belly.', 5)
-          .line('Breathe in.', 3)
-          .line('And out.', 3)
-          .line('Again — in.', 3)
-          .line('And out.', 3)
-          .line('Keep it going — in.', 4)
-          .line('And out.', 3)
-          .line('Two more slow belly breaths on your own.', 6)
+        cues: cues(28)
+          .line('Rest one hand gently on your belly.', 4)
+          .line('Breathe in.', 2)
+          .line('And out.', 2)
+          .line('Again — in.', 2)
+          .line('And out.', 2)
+          .line('Keep it going — in.', 3)
+          .line('And out.', 2)
+          .line('One more — in.', 3)
+          .line('And out.', 2)
+          .line('Last one — in.', 3)
+          .line('And out. Well done.', 3)
           .build()
       },
       {
