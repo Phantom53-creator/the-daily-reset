@@ -71,61 +71,61 @@ const BREAKS = {
   eyes: {
     id: 'eyes',
     name: 'Eyes',
-    duration: 121,
+    duration: 88,
     icon: '👁',
     description: 'The 20-20-20 rule and palming technique to reduce digital eye strain.',
     source: '[S2] American Optometric Association',
     isFree: true,
     steps: [
       {
-        duration: 15,
+        duration: 12,
         instruction: 'Sit comfortably. Look straight ahead. Notice any tension around your eyes.',
-        cues: cues(15)
-          .line('Sit comfortably in your chair, and look straight ahead of you.', 6)
-          .line('Notice any tension around your eyes, in those small hardworking muscles.', 6)
-          .line('Let them soften now.', 3)
+        cues: cues(12)
+          .line('Sit comfortably in your chair, and look straight ahead of you.', 5)
+          .line('Notice any tension around your eyes, in those small hardworking muscles.', 5)
+          .line('Let them soften now.', 2)
           .build()
       },
       {
-        duration: 20,
+        duration: 15,
         instruction: 'Look at something 20 feet away (or as far as possible) for 20 seconds.',
-        cues: cues(20)
-          .line('Find something far away — across the room, or out a window.', 6)
-          .line('Rest your eyes on it, and let your focus go completely soft.', 7)
-          .line('Keep gazing into the distance.', 4)
-          .line('A few seconds more.', 3)
+        cues: cues(15)
+          .line('Find something far away — across the room, or out a window.', 5)
+          .line('Rest your eyes on it, and let your focus go completely soft.', 5)
+          .line('Keep gazing into the distance.', 3)
+          .line('A few seconds more.', 2)
           .build()
       },
       {
-        duration: 30,
+        duration: 19,
         instruction: 'Close your eyes. Place your palms gently over them without pressure. Breathe slowly.',
-        cues: cues(30)
-          .line('Now close your eyes gently.', 4)
-          .line('Cup your palms over them softly — no pressure, just darkness.', 7)
-          .line('Feel the warmth of your hands relaxing the muscles around your eyes.', 7)
-          .line('Breathe slowly. In through your nose... and slowly out again.', 7)
-          .line('Stay in the dark a moment longer.', 5)
+        cues: cues(19)
+          .line('Now close your eyes gently.', 3)
+          .line('Cup your palms over them softly — no pressure, just darkness.', 4)
+          .line('Feel the warmth of your hands relaxing the muscles around your eyes.', 4)
+          .line('Breathe slowly. In through your nose... and slowly out again.', 5)
+          .line('Stay in the dark a moment longer.', 3)
           .build()
       },
       {
-        duration: 30,
+        duration: 18,
         instruction: 'With eyes still closed, look up, down, left, right. Repeat 3 times slowly.',
-        cues: cues(30)
-          .line('Keep your eyes closed now.', 4)
-          .line('Slowly look up... and then down.', 6)
-          .line("Now look left... and then right. That's round one.", 7)
-          .line('Round two — up... down... left... and right.', 7)
-          .line('Last round, nice and slow. Then rest.', 6)
+        cues: cues(18)
+          .line('Keep your eyes closed now.', 2)
+          .line('Slowly look up... and then down.', 3)
+          .line("Now look left... and then right. That's round one.", 5)
+          .line('Round two — up... down... left... and right.', 5)
+          .line('Last round, nice and slow. Then rest.', 3)
           .build()
       },
       {
-        duration: 26,
+        duration: 24,
         instruction: 'Open your eyes. Blink slowly 10 times. Notice the difference.',
-        cues: cues(26)
+        cues: cues(24)
           .line('Gently open your eyes again.', 4)
           .countup(10, { lead: 'Blink slowly.', leadSeconds: 2 })
-          .line('Notice the difference in how your eyes feel.', 6)
-          .line('Clarity. Moisture. Ease.', 4)
+          .line('Notice the difference in how your eyes feel.', 5)
+          .line('Clarity. Moisture. Ease.', 3)
           .build()
       }
     ],
@@ -135,20 +135,20 @@ const BREAKS = {
   shoulders: {
     id: 'shoulders',
     name: 'Shoulders',
-    duration: 199,
+    duration: 166,
     icon: '👐',
     description: 'Seated tension release for trapezius and neck. Reverses forward-head strain.',
     source: '[S3] Hansraj, Surgical Technology International (2014)',
     isFree: false,
     steps: [
       {
-        duration: 20,
+        duration: 14,
         instruction: 'Sit tall. Feet flat. Let your arms hang loose. Notice where you hold tension.',
-        cues: cues(20)
-          .line('Sit tall in your chair, with both feet flat on the floor.', 6)
-          .line('Let your arms hang loose and heavy by your sides.', 6)
-          .line("Notice where you're holding tension.", 4)
-          .line("We'll release it piece by piece.", 4)
+        cues: cues(14)
+          .line('Sit tall in your chair, with both feet flat on the floor.', 4)
+          .line('Let your arms hang loose and heavy by your sides.', 4)
+          .line("Notice where you're holding tension.", 3)
+          .line("We'll release it piece by piece.", 3)
           .build()
       },
       {
@@ -165,16 +165,16 @@ const BREAKS = {
           .build()
       },
       {
-        duration: 40,
+        duration: 30,
         instruction: 'Roll shoulders backward slowly — 5 full rotations. Then forward — 5 rotations.',
-        cues: cues(40)
+        cues: cues(30)
           .line('Roll your shoulders backward.', 3)
           .countup(5)
           .line('Now forward.', 2)
           .countup(5)
-          .line('Keep the circles big and slow, as large as they can go.', 8)
-          .line('Feel the trapezius muscles loosening with every single slow rotation you make.', 8)
-          .line('Let the last of the stiffness go. Your shoulders are waking up.', 9)
+          .line('Keep the circles big and slow, as large as they can go.', 5)
+          .line('Feel the trapezius muscles loosening with every single slow rotation you make.', 5)
+          .line('Let the last of the stiffness go. Your shoulders are waking up.', 5)
           .build()
       },
       {
@@ -189,36 +189,36 @@ const BREAKS = {
           .build()
       },
       {
-        duration: 40,
+        duration: 38,
         instruction: 'Interlace fingers behind head. Gently press head back into hands. Hold 10 sec. Release. Repeat 2 times.',
-        cues: cues(40)
+        cues: cues(38)
           .line('Press the back of your head into your hands.', 5)
           .countdown(10, { lead: 'Hold' })
           .line('And release. Rest a moment.', 3)
           .line('Once more.', 2)
           .countdown(10, { lead: 'Hold' })
-          .line('And release completely.', 3)
-          .line('Feel how much lighter your neck is.', 5)
+          .line('And release completely.', 2)
+          .line('Feel how much lighter your neck is.', 4)
           .build()
       },
       {
-        duration: 20,
+        duration: 12,
         instruction: 'Sit tall. Roll shoulders back and down. Let them settle. Breathe.',
-        cues: cues(20)
-          .line('Now sit tall once again.', 4)
-          .line('Roll your shoulders back and down.', 5)
-          .line('Let them settle into their natural place.', 5)
-          .line('Notice the space between your ears and shoulders.', 6)
+        cues: cues(12)
+          .line('Now sit tall once again.', 2)
+          .line('Roll your shoulders back and down.', 3)
+          .line('Let them settle into their natural place.', 3)
+          .line('Notice the space between your ears and shoulders.', 4)
           .build()
       },
       {
-        duration: 20,
+        duration: 13,
         instruction: 'Final breath. Inhale through nose, exhale through mouth. Ready to continue.',
-        cues: cues(20)
-          .line('One final breath together now.', 4)
-          .line('Breathe in slowly through your nose.', 5)
-          .line('And let it out through your mouth.', 5)
-          .line('Shoulders lower, neck longer. Ready to continue your day.', 6)
+        cues: cues(13)
+          .line('One final breath together now.', 3)
+          .line('Breathe in slowly through your nose.', 3)
+          .line('And let it out through your mouth.', 3)
+          .line('Shoulders lower, neck longer. Ready to continue your day.', 4)
           .build()
       }
     ],
@@ -228,29 +228,29 @@ const BREAKS = {
   stand: {
     id: 'stand',
     name: 'Stand',
-    duration: 120,
+    duration: 103,
     icon: '🧍',
     description: 'Two-minute standing reset with hip extension. Restores circulation and alertness.',
     source: '[S4] Harvard Health / sedentary behaviour research',
     isFree: false,
     steps: [
       {
-        duration: 15,
+        duration: 11,
         instruction: 'Stand up. Plant feet hip-width apart. Feel the floor.',
-        cues: cues(15)
-          .line('Stand up out of your chair.', 4)
-          .line('Plant your feet hip-width apart.', 4)
-          .line('Feel the solid floor beneath you.', 4)
-          .line('Settle your weight evenly.', 3)
+        cues: cues(11)
+          .line('Stand up out of your chair.', 3)
+          .line('Plant your feet hip-width apart.', 3)
+          .line('Feel the solid floor beneath you.', 3)
+          .line('Settle your weight evenly.', 2)
           .build()
       },
       {
-        duration: 20,
+        duration: 18,
         instruction: 'Rise onto toes, lower. Repeat 5 times, following the count.',
-        cues: cues(20)
+        cues: cues(18)
           .line('Rise up onto your toes.', 4)
           .countup(5, { lead: 'Go.' })
-          .line('And again at your own pace — up and down, pumping blood up from your calves.', 10)
+          .line('And again at your own pace — up and down, pumping blood up from your calves.', 8)
           .build()
       },
       {
@@ -273,25 +273,25 @@ const BREAKS = {
           .build()
       },
       {
-        duration: 21,
+        duration: 16,
         instruction: 'Arms down. Shake out hands and arms. Roll shoulders 3 times.',
-        cues: cues(21)
-          .line('Shake out your hands and arms.', 5)
-          .line('Loose and floppy, like rubber.', 5)
+        cues: cues(16)
+          .line('Shake out your hands and arms.', 4)
+          .line('Loose and floppy, like rubber.', 3)
           .countup(3, { lead: 'Roll your shoulders.', leadSeconds: 2 })
-          .line('And let everything settle.', 6)
+          .line('And let everything settle.', 4)
           .build()
       },
       {
-        duration: 20,
+        duration: 13,
         instruction: 'Stand still. Breathe deeply 3 times. Notice your alertness.',
-        cues: cues(20)
-          .line('Stand still now.', 3)
-          .line('Breathe in deeply.', 3)
-          .line('And breathe out.', 3)
-          .line('Again — breathe in.', 3)
-          .line('And out.', 3)
-          .line("Notice the alertness. That's two minutes well spent.", 5)
+        cues: cues(13)
+          .line('Stand still now.', 2)
+          .line('Breathe in deeply.', 2)
+          .line('And breathe out.', 2)
+          .line('Again — breathe in.', 2)
+          .line('And out.', 2)
+          .line("Notice the alertness. That's two minutes well spent.", 3)
           .build()
       }
     ],
@@ -301,20 +301,20 @@ const BREAKS = {
   breathe: {
     id: 'breathe',
     name: 'Breathe',
-    duration: 200,
+    duration: 183,
     icon: '🌬',
     description: 'Box breathing 4-4-4-4. Used by Navy SEALs. Validated for acute stress reduction.',
     source: '[S5] Jerath et al., Medical Hypotheses (2006)',
     isFree: true,
     steps: [
       {
-        duration: 20,
+        duration: 11,
         instruction: 'Sit comfortably. Feet flat. Hands resting on thighs. Close your eyes if comfortable.',
-        cues: cues(20)
-          .line('Sit comfortably and settle in.', 4)
-          .line('Feet flat on the floor, hands resting on your thighs.', 6)
-          .line('Close your eyes if that feels comfortable.', 6)
-          .line('Here we go.', 4)
+        cues: cues(11)
+          .line('Sit comfortably and settle in.', 2)
+          .line('Feet flat on the floor, hands resting on your thighs.', 3)
+          .line('Close your eyes if that feels comfortable.', 4)
+          .line('Here we go.', 2)
           .build()
       },
       { duration: 40, instruction: 'Follow the count. Inhale 4 → Hold 4 → Exhale 4 → Hold 4.', cues: boxBreathCues(40) },
@@ -322,13 +322,13 @@ const BREAKS = {
       { duration: 40, instruction: 'Notice your heart rate. It should be slowing.', cues: boxBreathCues(40) },
       { duration: 40, instruction: 'Smooth, even breaths. The box is steady.', cues: boxBreathCues(40) },
       {
-        duration: 20,
+        duration: 12,
         instruction: 'Return to natural breathing. Open eyes. Notice the calm.',
-        cues: cues(20)
-          .line('Let your breathing return to its own natural rhythm.', 6)
-          .line('Gently open your eyes.', 5)
-          .line("Notice the calm you've created.", 5)
-          .line('Carry it into your day.', 4)
+        cues: cues(12)
+          .line('Let your breathing return to its own natural rhythm.', 4)
+          .line('Gently open your eyes.', 3)
+          .line("Notice the calm you've created.", 3)
+          .line('Carry it into your day.', 2)
           .build()
       }
     ],
@@ -338,20 +338,20 @@ const BREAKS = {
   posture: {
     id: 'posture',
     name: 'Posture',
-    duration: 188,
+    duration: 161,
     icon: '🪑',
     description: 'Forward-head correction with chin tucks and scapular retraction. Opens the diaphragm.',
     source: '[S6] Kolar et al., Clinical Biomechanics (2012)',
     isFree: false,
     steps: [
       {
-        duration: 20,
+        duration: 12,
         instruction: 'Sit tall. Feet flat. Notice your head position — is it forward?',
-        cues: cues(20)
-          .line('Sit tall, with both feet flat on the floor.', 5)
-          .line('Notice the position of your head right now.', 5)
-          .line('Is it drifting forward toward the screen?', 5)
-          .line("Let's bring it back home.", 5)
+        cues: cues(12)
+          .line('Sit tall, with both feet flat on the floor.', 3)
+          .line('Notice the position of your head right now.', 3)
+          .line('Is it drifting forward toward the screen?', 3)
+          .line("Let's bring it back home.", 3)
           .build()
       },
       {
@@ -389,43 +389,43 @@ const BREAKS = {
           .build()
       },
       {
-        duration: 30,
+        duration: 25,
         instruction: 'Wall angel: Sit with back against chair. Arms out to sides, slide up and down 5 times.',
-        cues: cues(30)
-          .line('Sit back against your chair, arms out to the sides.', 5)
-          .line('Elbows bent, like a goalpost.', 5)
+        cues: cues(25)
+          .line('Sit back against your chair, arms out to the sides.', 4)
+          .line('Elbows bent, like a goalpost.', 4)
           .countup(5, { lead: 'Go.' })
-          .line('Nice and slow, keep them moving.', 6)
-          .line('One more set.', 3)
+          .line('Nice and slow, keep them moving.', 4)
+          .line('One more set.', 2)
           .countup(5)
           .build()
       },
       {
-        duration: 28,
+        duration: 22,
         instruction: 'Sit tall. Place one hand on belly. Breathe into belly 5 times (diaphragmatic breathing).',
-        cues: cues(28)
-          .line('Rest one hand gently on your belly.', 4)
-          .line('Breathe in.', 2)
-          .line('And out.', 2)
-          .line('Again — in.', 2)
-          .line('And out.', 2)
-          .line('Keep it going — in.', 3)
-          .line('And out.', 2)
-          .line('One more — in.', 3)
-          .line('And out.', 2)
-          .line('Last one — in.', 3)
-          .line('And out. Well done.', 3)
+        cues: cues(22)
+          .line('Rest one hand gently on your belly.', 8)
+          .line('Breathe in.', 1)
+          .line('And out.', 1)
+          .line('Again — in.', 1)
+          .line('And out.', 1)
+          .line('Keep it going — in.', 2)
+          .line('And out.', 1)
+          .line('One more — in.', 2)
+          .line('And out.', 1)
+          .line('Last one — in.', 2)
+          .line('And out. Well done.', 2)
           .build()
       },
       {
-        duration: 20,
+        duration: 12,
         instruction: 'Sit tall. Roll shoulders back and down. Settle. Notice the openness.',
-        cues: cues(20)
-          .line('Sit tall again.', 3)
-          .line('Roll your shoulders back and down.', 5)
-          .line('Let everything settle.', 4)
-          .line('Notice the openness in your chest.', 4)
-          .line('Take this posture with you.', 4)
+        cues: cues(12)
+          .line('Sit tall again.', 2)
+          .line('Roll your shoulders back and down.', 3)
+          .line('Let everything settle.', 3)
+          .line('Notice the openness in your chest.', 2)
+          .line('Take this posture with you.', 2)
           .build()
       }
     ],
