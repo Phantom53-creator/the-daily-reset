@@ -8,7 +8,6 @@ const LEARNING_EPISODES = [
     title: 'Why the 3 PM Crash Happens',
     category: 'science',
     duration: 240,
-    audioFile: 'audio/learning/lunch-001-3pm-crash.mp3',
     oneIdea: 'The afternoon crash is not weakness; it is biology meeting workload design.',
     takeaway: 'Schedule lighter decisions after lunch and use a physical reset before high-stakes afternoon work.',
     transcript: `There is a moment in most working days when the mind starts to feel slightly underwater. For many people it arrives somewhere between two and four in the afternoon. The mistake is to treat it as a character flaw. It is not laziness. It is not lack of discipline. It is a predictable collision between circadian rhythm, glucose regulation, digestion, and decision load.
@@ -24,7 +23,6 @@ The takeaway: if your energy drops at three, do not shame it. Design around it. 
     title: 'How Romans Managed Decision Fatigue',
     category: 'history',
     duration: 250,
-    audioFile: 'audio/learning/lunch-002-roman-decisions.mp3',
     oneIdea: 'Ancient leaders reduced decision fatigue with routine, counsel, and ritualised timing.',
     takeaway: 'Protect your best thinking by deciding when you decide.',
     transcript: `Roman public life was full of decisions: legal disputes, military choices, alliances, taxes, patronage, succession. A senior Roman did not simply drift through those choices as they arrived. The day had structure. Public business happened at particular times. Counsel was sought from particular people. Ritual mattered because ritual reduced uncertainty.
@@ -42,7 +40,6 @@ The takeaway: decision fatigue is not solved by being tougher. It is solved by g
     title: 'Box Breathing and the Nervous System',
     category: 'science',
     duration: 230,
-    audioFile: 'audio/learning/lunch-003-box-breathing.mp3',
     oneIdea: 'Controlled breathing gives the nervous system a mechanical signal of safety.',
     takeaway: 'Use box breathing before difficult calls, not only after stressful ones.',
     transcript: `Box breathing is simple: inhale, hold, exhale, hold, usually for four counts each. Its power is not mystical. It works because breathing is one of the few body systems that is both automatic and controllable. You do not have to think about breathing, but you can choose to change it.
@@ -60,7 +57,6 @@ The takeaway: your breath is not just a symptom of your state. It is a lever. Us
     title: 'The Chess Grandmaster Break',
     category: 'performance',
     duration: 235,
-    audioFile: 'audio/learning/lunch-004-chess-break.mp3',
     oneIdea: 'Elite thinkers step away to preserve pattern recognition.',
     takeaway: 'A short break is often the fastest route back to strategic vision.',
     transcript: `Watch a strong chess player during a long game and you will notice something interesting. They do not stare at the board every second. They stand. They walk. They look away. To a casual observer, that can look like disengagement. In reality, it is part of thinking.
@@ -78,7 +74,6 @@ The takeaway: if you cannot see the move, stop staring at the board. Step away f
     title: 'Seneca on Time Pressure',
     category: 'philosophy',
     duration: 245,
-    audioFile: 'audio/learning/lunch-005-seneca-time.mp3',
     oneIdea: 'The ancient complaint was not short life, but leaked attention.',
     takeaway: 'Treat attention as the real calendar.',
     transcript: `Seneca wrote that life is long enough if you know how to use it. He was not writing to people with empty schedules. He was writing in a world of politics, obligation, status, and distraction. Different tools, same human problem.
@@ -96,7 +91,6 @@ The takeaway: protect attention as seriously as time. A full calendar is surviva
     title: 'The Physiology of Slumped Posture',
     category: 'science',
     duration: 230,
-    audioFile: 'audio/learning/lunch-006-slumped-posture.mp3',
     oneIdea: 'Posture changes breathing, and breathing changes cognition.',
     takeaway: 'When your thinking feels compressed, open the body first.',
     transcript: `Slumped posture looks harmless. It is just how people sit when the day gets long. But the body is not separate from thinking. When the shoulders round forward and the head drifts toward the screen, the ribcage closes. The diaphragm has less room to move. Breathing becomes shallower.
@@ -114,7 +108,6 @@ The takeaway: if your thinking feels tight, do not start by forcing clarity. Sta
     title: 'Overcoming Obstacles: Insights from the Leaders in Their Fields',
     category: 'motivation',
     duration: 250,
-    audioFile: 'audio/learning/lunch-007-overcoming-obstacles.mp3',
     oneIdea: 'Every obstacle contains the seed of an equal or greater benefit — if you reframe it as fuel.',
     takeaway: 'When you hit a wall, ask: what is this obstacle teaching me that easy progress never could?',
     transcript: `Some of the most respected voices in motivation and performance converge on one idea: obstacles are not the problem. The meaning you assign to them is.
@@ -138,7 +131,6 @@ The takeaway: when you hit a wall today, do not ask why this is happening to you
     title: 'Why Walking Helps Thinking',
     category: 'science',
     duration: 235,
-    audioFile: 'audio/learning/lunch-008-walking-thinking.mp3',
     oneIdea: 'Movement changes cognition by changing rhythm, circulation, and attention.',
     takeaway: 'Use movement for problems that are stuck, not just for fitness.',
     transcript: `Many people discover by accident that they think better while walking. This is not just a romantic idea about poets and philosophers. Movement changes the state of the body, and the state of the body changes the mind.
@@ -156,7 +148,6 @@ The takeaway: movement is not only recovery from work. Sometimes movement is the
     title: 'Churchill and the Change of Work',
     category: 'history',
     duration: 240,
-    audioFile: 'audio/learning/lunch-009-churchill-change-work.mp3',
     oneIdea: 'A change of activity can restore energy better than simple idleness.',
     takeaway: 'Recover by switching modes, not only by stopping.',
     transcript: `Winston Churchill carried immense pressure, and not always in healthy ways. But one of his useful observations was that a change of work can be restorative. He painted. He built walls. He wrote. He shifted modes.
@@ -174,7 +165,6 @@ The takeaway: when you are drained, ask what kind of work tired you. Then recove
     title: 'The Attention Residue Problem',
     category: 'performance',
     duration: 245,
-    audioFile: 'audio/learning/lunch-010-attention-residue.mp3',
     oneIdea: 'Part of the mind remains stuck on the last task after switching.',
     takeaway: 'Use a reset ritual between meetings to clear residue before the next conversation.',
     transcript: `Attention residue is the mental smear left behind when you switch tasks. You leave one meeting, enter another, and part of your mind is still in the previous room. The calendar says you have moved on. The brain has not.
@@ -192,7 +182,6 @@ The takeaway: transitions are work. If you do not manage them, they manage you.`
     title: 'The Navy SEAL Lesson That Actually Transfers',
     category: 'performance',
     duration: 230,
-    audioFile: 'audio/learning/lunch-011-seal-lesson.mp3',
     oneIdea: 'Elite calm is trained through simple repeatable protocols.',
     takeaway: 'Do not wait for confidence. Run the protocol.',
     transcript: `It is easy to misuse military examples in business. Most office pressure is not battlefield pressure, and pretending otherwise is silly. But one lesson does transfer: under stress, people do not rise to vague intentions. They fall back on trained protocols.
@@ -210,7 +199,6 @@ The takeaway: calm is not a mood you wait for. It is a sequence you can run.`
     title: 'What Monks Understand About Repetition',
     category: 'philosophy',
     duration: 235,
-    audioFile: 'audio/learning/lunch-012-monks-repetition.mp3',
     oneIdea: 'Repetition is not always boredom; it can be the path to automatic steadiness.',
     takeaway: 'Keep the useful routine, refresh the meaning around it.',
     transcript: `A monastery runs on repetition. Bells, meals, prayer, work, silence, return. To outsiders, that can look like monotony. To practitioners, repetition is the container that makes depth possible.
@@ -228,7 +216,6 @@ The takeaway: do not abandon a routine just because it has become familiar. Fami
     title: 'Why Leaders Need Physical Cues',
     category: 'leadership',
     duration: 240,
-    audioFile: 'audio/learning/lunch-013-physical-cues.mp3',
     oneIdea: 'The body often notices stress before the conscious mind admits it.',
     takeaway: 'Use shoulders, jaw, breath, and eyes as early warning signals.',
     transcript: `Most leaders are trained to read external data: revenue, churn, cash, headcount, pipeline. Fewer are trained to read internal data. But the body reports stress before the mind often admits it.
@@ -246,7 +233,6 @@ The takeaway: your body is not an interruption to leadership. It is part of the 
     title: 'The Pomodoro Principle Without the Tomato',
     category: 'productivity',
     duration: 225,
-    audioFile: 'audio/learning/lunch-014-pomodoro-principle.mp3',
     oneIdea: 'Work improves when effort and recovery are structured together.',
     takeaway: 'Use breaks as part of the work cycle, not as a reward for finishing everything.',
     transcript: `The Pomodoro Technique became famous through a kitchen timer shaped like a tomato. But the deeper principle is not the tomato or the exact minutes. It is the idea that focus and recovery belong together.
@@ -264,7 +250,6 @@ The takeaway: a break is not a reward for work completed. It is maintenance that
     title: 'Marcus Aurelius and the Inner Citadel',
     category: 'philosophy',
     duration: 250,
-    audioFile: 'audio/learning/lunch-015-inner-citadel.mp3',
     oneIdea: 'A leader needs a place inside that the day does not own.',
     takeaway: 'Use short pauses to return to what is yours to govern.',
     transcript: `Marcus Aurelius was not writing philosophy from a quiet cabin. He wrote as an emperor dealing with war, plague, betrayal, politics, and exhaustion. His private notes return again and again to one idea: there is a part of the self that can remain governed, even when circumstances are not.
@@ -282,7 +267,6 @@ The takeaway: build a small inner room the day cannot enter without permission.`
     title: 'Why Screens Tire the Eyes Differently',
     category: 'science',
     duration: 230,
-    audioFile: 'audio/learning/lunch-016-screen-eyes.mp3',
     oneIdea: 'Screens reduce blink rate and lock focus at a fixed distance.',
     takeaway: 'The eye break is not optional comfort; it restores a system under constant load.',
     transcript: `Reading a screen is not the same as looking around the world. The eyes hold focus at a fixed distance for long periods. Blink rate often drops. Light, contrast, small text, and glare all add load.
@@ -300,7 +284,6 @@ The takeaway: protect your eyes because they are part of your thinking system. I
     title: 'The Japanese Idea of Ma',
     category: 'culture',
     duration: 240,
-    audioFile: 'audio/learning/lunch-017-ma-space.mp3',
     oneIdea: 'Space is not emptiness; it is what lets the meaningful thing be perceived.',
     takeaway: 'Leave space between events so the next one can be met properly.',
     transcript: `In Japanese aesthetics, the word ma points to interval, pause, space. It is the silence between notes, the empty space in a room, the gap that gives form to what surrounds it.
@@ -318,7 +301,6 @@ The takeaway: space is not wasted capacity. Space is what lets the next thing re
     title: 'Why Recovery Must Be Scheduled',
     category: 'leadership',
     duration: 235,
-    audioFile: 'audio/learning/lunch-018-scheduled-recovery.mp3',
     oneIdea: 'Unscheduled recovery loses to urgent work.',
     takeaway: 'Put recovery in the system before the system needs it.',
     transcript: `Everyone agrees recovery matters in theory. In practice, unscheduled recovery usually disappears. The urgent thing wins. The meeting overruns. The message arrives. The break gets postponed.
@@ -336,7 +318,6 @@ The takeaway: do not wait until recovery feels urgent. Put it in the system whil
     title: 'The Compound Interest of Small Breaks',
     category: 'performance',
     duration: 245,
-    audioFile: 'audio/learning/lunch-019-compound-breaks.mp3',
     oneIdea: 'Small resets compound by preventing the accumulation of fatigue.',
     takeaway: 'Do not measure the break by three minutes; measure the day it protects.',
     transcript: `A single three-minute break can seem too small to matter. That is the wrong unit of measurement. The value is not only what happens in the three minutes. The value is what does not accumulate afterwards.
@@ -354,7 +335,6 @@ The takeaway: do not ask whether three minutes can transform your life. Ask what
     title: 'The Rule of One Clear Next Action',
     category: 'productivity',
     duration: 230,
-    audioFile: 'audio/learning/lunch-020-one-next-action.mp3',
     oneIdea: 'Clarity often returns when the next action is small enough to start.',
     takeaway: 'End each break by choosing one concrete next action.',
     transcript: `After a break, the temptation is to return to the entire mountain: inbox, strategy, team, product, money, family, health. The mind tightens because it tries to hold everything at once.
@@ -372,7 +352,6 @@ The takeaway: end the reset by choosing one action small enough to start and mea
     title: 'On This Day: The Magic of Mondays — Something Massive Happened on This Date',
     category: 'history',
     duration: 240,
-    audioFile: 'audio/learning/lunch-021-on-this-day-1.mp3',
     oneIdea: 'Every day on the calendar has hosted a moment that altered the course of history.',
     takeaway: 'History is not abstract. It happened on a day like today — and the people who made it were not so different from you.',
     transcript: `Pick any date on the calendar. Something pivotal happened. Not always a battle or a revolution. Sometimes a patent was filed. Sometimes a treaty was signed. Sometimes someone walked out of a room and changed everything.
@@ -390,7 +369,6 @@ The takeaway: history is not something that happened to other people. It is a mi
     title: 'On This Day: Decisions Under Pressure',
     category: 'history',
     duration: 220,
-    audioFile: 'audio/learning/lunch-022-on-this-day-2.mp3',
     oneIdea: 'The best historical decisions were rarely the comfortable ones.',
     takeaway: 'When you face a hard call today, remember: someone on this date in history made a harder one with less information.',
     transcript: `The decisions that echo through history are almost never the easy ones. They are the calls made when information was incomplete, stakes were high, and time was running out.
