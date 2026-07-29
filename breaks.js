@@ -55,15 +55,24 @@ function cues(duration) {
   return api;
 }
 
-// Box-breathing: a phase label or count word EVERY second for the whole cycle.
-function boxBreathCues(duration) {
+// Box-breathing: a phase label or count word every second, for a WHOLE number
+// of complete 4-4-4-4 cycles (16s each) — never a partial cycle. A duration
+// that wasn't a clean multiple of 16 used to cut a step off mid-phase (often
+// losing "breathe out" entirely) and then the next step restarted cold on
+// "breathe in," which is what produced two "breathe in"s in a row with no
+// "breathe out" between them. Every cycle now always completes in full, then
+// an explicit spoken pause (not a raw stop) signals the step is done before
+// the next one begins.
+function boxBreathCues(cycles, pauseText, pauseSeconds) {
   const phaseLabel = ['Breathe in', 'Hold', 'Breathe out', 'Hold'];
   const list = [];
-  for (let t = 0; t < duration; t++) {
+  const total = cycles * 16;
+  for (let t = 0; t < total; t++) {
     const posInPhase = t % 4;
     const phase = Math.floor(t / 4) % 4;
     list.push({ t, say: posInPhase === 0 ? phaseLabel[phase] : COUNT_WORDS[posInPhase - 1], rate: 'count' });
   }
+  list.push({ t: total, say: pauseText });
   return list;
 }
 
@@ -301,7 +310,7 @@ const BREAKS = {
   breathe: {
     id: 'breathe',
     name: 'Breathe',
-    duration: 183,
+    duration: 227,
     icon: '🌬',
     description: 'Box breathing 4-4-4-4. Used by Navy SEALs. Validated for acute stress reduction.',
     source: '[S5] Jerath et al., Medical Hypotheses (2006)',
@@ -317,10 +326,10 @@ const BREAKS = {
           .line('Here we go.', 2)
           .build()
       },
-      { duration: 40, instruction: 'Follow the count. Inhale 4 → Hold 4 → Exhale 4 → Hold 4.', cues: boxBreathCues(40) },
-      { duration: 40, instruction: 'Same steady rhythm. Let the breath slow naturally.', cues: boxBreathCues(40) },
-      { duration: 40, instruction: 'Notice your heart rate. It should be slowing.', cues: boxBreathCues(40) },
-      { duration: 40, instruction: 'Smooth, even breaths. The box is steady.', cues: boxBreathCues(40) },
+      { duration: 51, instruction: 'Follow the count. Inhale 4 → Hold 4 → Exhale 4 → Hold 4.', cues: boxBreathCues(3, 'Relax for a moment.', 3) },
+      { duration: 51, instruction: 'Same steady rhythm. Let the breath slow naturally.', cues: boxBreathCues(3, 'Relax for a moment.', 3) },
+      { duration: 51, instruction: 'Notice your heart rate. It should be slowing.', cues: boxBreathCues(3, 'Relax for a moment.', 3) },
+      { duration: 51, instruction: 'Smooth, even breaths. The box is steady.', cues: boxBreathCues(3, 'Relax for a moment.', 3) },
       {
         duration: 12,
         instruction: 'Return to natural breathing. Open eyes. Notice the calm.',
