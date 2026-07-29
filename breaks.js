@@ -13,6 +13,18 @@
 // voice talks through the gap instead of finishing early and going silent.
 //
 // `narration` (the studio recording script) is auto-derived from the cues.
+//
+// REUSABLE CLIPS: a step can optionally set `clipId: 'some-stable-id'`. Steps
+// without one keep today's exact positional filename (auto-derived from the
+// break id + step number) and behave exactly as before. When a future
+// sequence variant repeats an exercise that already exists elsewhere (e.g.
+// the same "20-20-20 rule" step reused across multiple Eyes sequences), give
+// both steps the SAME clipId so tts-generate.js only generates and stores the
+// audio once instead of duplicating it. Every step sharing a clipId MUST have
+// identical `duration`/`cues` — tts-generate.js enforces this and throws a
+// clear error at build time if they ever drift, since a shared clip silently
+// carrying the wrong pacing for one of its sequences would be worse than not
+// sharing it at all.
 
 const COUNT_WORDS = ['one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten'];
 

@@ -39,8 +39,14 @@ const AudioEngine = {
 
   // --- Path conventions (must match audio-manifest.js) ---
 
+  // A step can optionally carry a clipId (breaks.js) so it reuses an
+  // already-generated clip instead of always being tied to its position in
+  // one specific sequence — needed for future sequence variants that repeat
+  // the same exercise. Steps without one keep today's exact filename.
   breakStepSrc(breakId, stepIndex) {
-    return `audio/breaks/${breakId}-step${stepIndex + 1}-${this.gender}.mp3`;
+    const step = window.BREAKS?.[breakId]?.steps?.[stepIndex];
+    const clipId = step?.clipId || `${breakId}-step${stepIndex + 1}`;
+    return `audio/breaks/${clipId}-${this.gender}.mp3`;
   },
 
   // Learning episodes are each recorded in exactly one fixed voice (half the

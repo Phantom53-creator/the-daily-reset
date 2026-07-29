@@ -21,6 +21,23 @@
 // Quotes and learning episodes have no such timing constraint, so those are
 // a single continuous TTS call per script.
 //
+// QA GATE (mandatory, cannot be skipped): a break step used to be considered
+// "done" once its total duration matched breaks.js's configured timer — but a
+// file can be exactly the right LENGTH while still containing many seconds of
+// dead air in the middle or at the end (this shipped undetected for a full
+// session, only found by manually running silence-detection on every file
+// after the fact). Every break-step generation now runs the same
+// waveform-level check automatically before the file is ever written to its
+// real path: it's assembled to a temp file first, analyzed for internal
+// silence gaps and speed-compression, and only promoted to the live path if
+// it passes. A failing file is deleted, not shipped, and the run exits
+// non-zero. Defaults: max silence gap 3.0s, max speed-up 1.10x — override
+// with --max-silence-gap=<seconds> / --max-compression=<ratio> for a
+// deliberate exception. Re-check existing files on disk (no API key, no
+// regeneration) with --qa-only, e.g. to verify the whole library after
+// changing these thresholds:
+//   node tts-generate.js --breaks=all --gender=female --qa-only
+//
 // USAGE
 //   node tts-generate.js --voice="Telnyx.NaturalHD.astra" --gender=female --all
 //   node tts-generate.js --voice="..." --gender=female --breaks
@@ -57,14 +74,14 @@
 const fs = require('fs');
 const path = require('path');
 const https = require('https');
-const { execFileSync } = require('child_process');
+const { execFileSync, spawnSync } = require('child_process');
 
 const ROOT = __dirname;
 
 // ---------- CLI args ----------
 
 function parseArgs(argv) {
-  const args = { breaks: null, learning: null, quotes: null, words: null, all: false, dryRun: false, force: false, provider: 'telnyx' };
+  const args = { breaks: null, learning: null, quotes: null, words: null, all: false, dryRun: false, force: false, provider: 'telnyx', qaOnly: false };
   for (const raw of argv) {
     const [flag, ...rest] = raw.replace(/^--/, '').split('=');
     const value = rest.join('=');
@@ -86,13 +103,16 @@ function parseArgs(argv) {
     else if (flag === 'pitch') args.pitch = value;
     else if (flag === 'rate') args.rate = value;
     else if (flag === 'emotion') args.emotion = value;
+    else if (flag === 'max-silence-gap') args.maxSilenceGap = parseFloat(value);
+    else if (flag === 'max-compression') args.maxCompression = parseFloat(value);
+    else if (flag === 'qa-only') args.qaOnly = true;
   }
   return args;
 }
 
 function printUsageAndExit(message) {
   if (message) console.error('\n' + message + '\n');
-  console.error(fs.readFileSync(__filename, 'utf8').split('\n').slice(1, 45).map(l => l.replace(/^\/\/ ?/, '')).join('\n'));
+  console.error(fs.readFileSync(__filename, 'utf8').split('\n').slice(1, 71).map(l => l.replace(/^\/\/ ?/, '')).join('\n'));
   process.exit(1);
 }
 
@@ -126,14 +146,48 @@ const LEARNING_BRIDGE = bridgeMatch ? bridgeMatch[1].replace(/\\"/g, '"').replac
 function buildCatalog() {
   const items = [];
 
+  // clipId lets a step reuse an already-generated clip instead of always
+  // being tied to its position in one specific sequence — needed so a future
+  // 10-variants-per-topic expansion can share audio for content that repeats
+  // across sequences rather than duplicating it. Steps without a clipId keep
+  // today's exact positional filename, so existing content is untouched.
+  const clipGroups = new Map(); // clipId -> [{ breakId, i, step }]
   for (const [breakId, brk] of Object.entries(BREAKS)) {
     brk.steps.forEach((step, i) => {
+      const clipId = step.clipId || `${breakId}-step${i + 1}`;
+      if (!clipGroups.has(clipId)) clipGroups.set(clipId, []);
+      clipGroups.get(clipId).push({ breakId, i, step });
+    });
+  }
+  // Integrity check: a clipId is only safe to reuse if every step referencing
+  // it is content-identical — otherwise a shared clip would silently carry
+  // the wrong duration/pacing for whichever sequence didn't author it.
+  for (const [clipId, refs] of clipGroups) {
+    if (refs.length < 2) continue;
+    const [first, ...rest] = refs;
+    const firstKey = JSON.stringify({ duration: first.step.duration, cues: first.step.cues });
+    for (const ref of rest) {
+      const key = JSON.stringify({ duration: ref.step.duration, cues: ref.step.cues });
+      if (key !== firstKey) {
+        throw new Error(
+          `clipId "${clipId}" is used by both ${first.breakId}-step${first.i + 1} and ${ref.breakId}-step${ref.i + 1} ` +
+          `but they have different duration/cues — clipIds must be content-identical across every step that uses them. ` +
+          `Give the variant a new clipId instead of reusing this one.`
+        );
+      }
+    }
+  }
+
+  for (const [breakId, brk] of Object.entries(BREAKS)) {
+    brk.steps.forEach((step, i) => {
+      const clipId = step.clipId || `${breakId}-step${i + 1}`;
       items.push({
         kind: 'break',
         id: `${breakId}-step-${i}`,
         groupId: breakId,
+        clipId,
         label: `${brk.name} — step ${i + 1}: ${step.instruction}`,
-        filePath: g => `audio/breaks/${breakId}-step${i + 1}-${g}.mp3`,
+        filePath: g => `audio/breaks/${clipId}-${g}.mp3`,
         duration: step.duration,
         cues: step.cues
       });
@@ -217,9 +271,17 @@ function selectItems(catalog, args) {
   pick('learning', args.learning);
   pick('word', args.words);
 
-  // De-dupe (a break/group selector can match the same item twice)
+  // De-dupe by output identity, not just catalog id — a break/group selector
+  // can match the same item twice, AND two different steps can now share a
+  // clipId (same output file), which would otherwise queue the same TTS
+  // generation twice in one run.
   const seen = new Set();
-  return selected.filter(i => (seen.has(i.id) ? false : (seen.add(i.id), true)));
+  return selected.filter(i => {
+    const key = i.kind === 'break' ? `break:${i.clipId}` : i.id;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
 }
 
 // ---------- Provider-aware API key loading ----------
@@ -418,6 +480,41 @@ function ffprobeDuration(filePath) {
   return parseFloat(out.toString().trim());
 }
 
+// Waveform-level QA — finds actual silence inside a file, not just whether its
+// total duration matches a configured timer. A file can be exactly the right
+// length while still containing many seconds of dead air in the middle or at
+// the end (this shipped undetected for a full session because only duration
+// was ever checked). Parses ffmpeg's silencedetect filter output from stderr.
+function analyzeAudioFile(filePath, { silenceDb = -35, minGapSeconds = 1.0 } = {}) {
+  // spawnSync (not execFileSync) — execFileSync only returns/throws with
+  // stdout captured on success; on a clean exit its stderr is silently
+  // discarded, and silencedetect's actual output always goes to stderr. That
+  // meant a passing file's real gap data was never read at all (only ever
+  // seen if the process happened to throw). spawnSync always gives back both
+  // streams regardless of exit status.
+  const result = spawnSync('ffmpeg', ['-i', filePath, '-af', `silencedetect=noise=${silenceDb}dB:d=${minGapSeconds}`, '-f', 'null', '-']);
+  const stderr = result.stderr ? result.stderr.toString() : '';
+  if (!stderr.includes('silencedetect') && result.status !== 0) {
+    throw new Error(`ffmpeg failed analyzing ${filePath}: ${stderr.slice(-300)}`);
+  }
+  const gaps = [];
+  let pendingStart = null;
+  for (const line of stderr.split('\n')) {
+    const startMatch = line.match(/silence_start:\s*([\d.]+)/);
+    if (startMatch) { pendingStart = parseFloat(startMatch[1]); continue; }
+    const endMatch = line.match(/silence_end:\s*([\d.]+)\s*\|\s*silence_duration:\s*([\d.]+)/);
+    if (endMatch) {
+      const end = parseFloat(endMatch[1]);
+      const duration = parseFloat(endMatch[2]);
+      gaps.push({ start: pendingStart !== null ? pendingStart : end - duration, end, duration });
+      pendingStart = null;
+    }
+  }
+  const actualDuration = ffprobeDuration(filePath);
+  const maxGap = gaps.reduce((m, g) => Math.max(m, g.duration), 0);
+  return { actualDuration, silenceGaps: gaps, maxGap };
+}
+
 // All per-cue work happens in WAV/PCM (lossless) — silence generation, the
 // speed-up below, and concatenation. MP3 encoding happens exactly ONCE, on
 // the final assembled step, at the very end. Splicing already-compressed MP3
@@ -532,10 +629,20 @@ function buildSynthesisSegments(cues, duration) {
   return segments;
 }
 
-async function generateBreakStep(item, provider, apiKey, voice, speed, countSpeed, outPath, opts = {}) {
+// QA gate defaults — the tolerances established and verified against Shane's
+// explicit feedback this session: a natural pause up to ~3s between spoken
+// segments is fine, longer than that is the dead-air bug; a clip sped up more
+// than ~10% to fit its window starts sounding audibly rushed/robotic.
+const DEFAULT_MAX_SILENCE_GAP = 3.0;
+const DEFAULT_MAX_COMPRESSION = 1.10;
+
+async function generateBreakStep(item, provider, apiKey, voice, speed, countSpeed, outPath, opts = {}, qaOpts = {}) {
+  const maxSilenceGap = qaOpts.maxSilenceGap ?? DEFAULT_MAX_SILENCE_GAP;
+  const maxCompression = qaOpts.maxCompression ?? DEFAULT_MAX_COMPRESSION;
   const tmpDir = fs.mkdtempSync(path.join(require('os').tmpdir(), 'tts-cue-'));
   const segments = [];
   const warnings = [];
+  let maxTempo = 1.0;
   try {
     const units = buildSynthesisSegments(item.cues, item.duration);
     for (let i = 0; i < units.length; i++) {
@@ -556,6 +663,7 @@ async function generateBreakStep(item, provider, apiKey, voice, speed, countSpee
         // less audible correction than compressing a single isolated word.
         const compressedPath = path.join(tmpDir, `unit-${i}-fit.wav`);
         const tempo = compressToFit(unitPath, unit.windowSeconds, compressedPath);
+        maxTempo = Math.max(maxTempo, tempo);
         segments.push(compressedPath);
         warnings.push(`t=${unit.startT}s "${unit.say.slice(0, 40)}${unit.say.length > 40 ? '…' : ''}" took ${spoken.toFixed(2)}s for a ${unit.windowSeconds}s window — sped up ${tempo.toFixed(2)}x to fit`);
       } else {
@@ -567,12 +675,42 @@ async function generateBreakStep(item, provider, apiKey, voice, speed, countSpee
         }
       }
     }
+
+    // QA gate: assemble into a PENDING file first — never the live outPath —
+    // and only promote it if it actually passes waveform-level inspection.
+    // Duration alone was proven insufficient this session (a file can be
+    // exactly the right total length while still containing many seconds of
+    // dead air); this is what would have caught that automatically instead of
+    // requiring a manual, file-by-file audit after the fact.
     fs.mkdirSync(path.dirname(outPath), { recursive: true });
-    concatWavsToMp3(segments, outPath);
+    const pendingPath = outPath + '.qa-pending.mp3';
+    concatWavsToMp3(segments, pendingPath);
+
+    // minGapSeconds is a LOW, fixed detection floor — independent of
+    // maxSilenceGap (the enforced threshold below). If these were the same
+    // value, a stricter --max-silence-gap could never actually catch
+    // anything smaller than itself, since ffmpeg would never even report a
+    // gap below that size to compare against.
+    const analysis = analyzeAudioFile(pendingPath, { minGapSeconds: 0.3 });
+    const gapOk = analysis.maxGap <= maxSilenceGap;
+    const tempoOk = maxTempo <= maxCompression;
+
+    if (gapOk && tempoOk) {
+      fs.renameSync(pendingPath, outPath);
+      return { passed: true, warnings, maxTempo, maxGap: analysis.maxGap };
+    }
+
+    fs.rmSync(pendingPath, { force: true });
+    const reasons = [];
+    if (!gapOk) {
+      const worst = analysis.silenceGaps.reduce((a, b) => (b.duration > a.duration ? b : a), { duration: 0 });
+      reasons.push(`${worst.duration.toFixed(2)}s silence gap at t=${worst.start.toFixed(1)}s-${worst.end.toFixed(1)}s (max allowed ${maxSilenceGap}s)`);
+    }
+    if (!tempoOk) reasons.push(`sped up ${maxTempo.toFixed(2)}x (max allowed ${maxCompression}x)`);
+    return { passed: false, warnings, maxTempo, maxGap: analysis.maxGap, failureReason: reasons.join(' / ') };
   } finally {
     fs.rmSync(tmpDir, { recursive: true, force: true });
   }
-  return warnings;
 }
 
 // ---------- Manifest regeneration (mirrors update-audio-manifest.sh) ----------
@@ -623,7 +761,7 @@ async function main() {
   if (!args.gender || !['female', 'male'].includes(args.gender)) {
     printUsageAndExit('--gender=female or --gender=male is required (determines the output filename).');
   }
-  if (!args.dryRun && !args.voice) {
+  if (!args.dryRun && !args.qaOnly && !args.voice) {
     printUsageAndExit('--voice="Telnyx.NaturalHD.astra" (or your voice code/ID) is required, unless using --dry-run.');
   }
   if (!PROVIDER_ENV[args.provider]) {
@@ -645,6 +783,28 @@ async function main() {
   const catalog = buildCatalog();
   const selected = selectItems(catalog, args);
   if (selected.length === 0) { console.log('Nothing matched your selection.'); return; }
+
+  // --qa-only re-checks files ALREADY on disk with no API key, no generation,
+  // and no risk to existing content — used to re-verify the whole library as
+  // a regression check (e.g. after changing the gate's own thresholds).
+  if (args.qaOnly) {
+    const maxSilenceGap = args.maxSilenceGap ?? DEFAULT_MAX_SILENCE_GAP;
+    let failures = 0, checked = 0;
+    for (const item of selected) {
+      const filePath = path.join(ROOT, item.filePath(args.gender));
+      if (!fs.existsSync(filePath)) continue;
+      checked++;
+      const analysis = analyzeAudioFile(filePath, { minGapSeconds: 0.3 });
+      if (analysis.maxGap > maxSilenceGap) {
+        failures++;
+        const worst = analysis.silenceGaps.reduce((a, b) => (b.duration > a.duration ? b : a));
+        console.log(`  !! ${item.filePath(args.gender)} — ${worst.duration.toFixed(2)}s silence gap at t=${worst.start.toFixed(1)}s-${worst.end.toFixed(1)}s (max allowed ${maxSilenceGap}s)`);
+      }
+    }
+    console.log(`\n${checked - failures}/${checked} file(s) passed the silence-gap check (max allowed ${maxSilenceGap}s).`);
+    if (failures > 0) process.exitCode = 1;
+    return;
+  }
 
   const toGenerate = selected.filter(item => {
     const outPath = path.join(outputRoot, item.filePath(args.gender));
@@ -669,8 +829,10 @@ async function main() {
   // "-10%") and --emotion (e.g. "relaxed") are applied via SSML — see
   // wrapSpeechifySSML(). Harmlessly ignored by the other two providers.
   const opts = { model: args.model, pitch: args.pitch, rate: args.rate, emotion: args.emotion };
+  const qaOpts = { maxSilenceGap: args.maxSilenceGap, maxCompression: args.maxCompression };
 
   let done = 0;
+  let qaFailures = 0;
   const allWarnings = [];
   const generatedPaths = [];
   for (const item of toGenerate) {
@@ -678,8 +840,13 @@ async function main() {
     process.stdout.write(`  Generating ${item.filePath(args.gender)} ... `);
     try {
       if (item.kind === 'break') {
-        const warnings = await generateBreakStep(item, args.provider, apiKey, args.voice, speed, countSpeed, outPath, opts);
-        allWarnings.push(...warnings.map(w => `${item.id}: ${w}`));
+        const result = await generateBreakStep(item, args.provider, apiKey, args.voice, speed, countSpeed, outPath, opts, qaOpts);
+        allWarnings.push(...result.warnings.map(w => `${item.id}: ${w}`));
+        if (!result.passed) {
+          qaFailures++;
+          console.log(`QA FAILED — ${result.failureReason}`);
+          continue; // not written to outPath, not counted as generated, no mirror copy
+        }
       } else {
         await generateContinuous(item, args.provider, apiKey, args.voice, speed, outPath, opts);
       }
@@ -696,6 +863,7 @@ async function main() {
       console.error(`    ${err.message}`);
     }
   }
+  if (qaFailures > 0) process.exitCode = 1;
 
   if (isComparisonRun) {
     // Scan the FULL catalog (not just this run's selector) for whatever
@@ -721,6 +889,9 @@ async function main() {
   if (allWarnings.length) {
     console.log('\nAuto-corrected timing (these clips ran long, so they were sped up slightly to stay on schedule):');
     allWarnings.forEach(w => console.log('  ! ' + w));
+  }
+  if (qaFailures > 0) {
+    console.log(`\n${qaFailures} file(s) FAILED the QA gate and were NOT written — re-run after adjusting the script's timing (see failure reasons above), or pass --max-silence-gap/--max-compression to intentionally allow a specific case.`);
   }
 }
 
