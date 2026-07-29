@@ -52,13 +52,18 @@ function cues(duration) {
       }
       return api;
     },
+    // stepSeconds lets a specific count-up run slower than the platform's
+    // normal one-per-second pace (default, unchanged everywhere it isn't
+    // passed) — e.g. counting 10 slow blinks needs real time for each blink
+    // to actually happen, not just for the number to be spoken.
     countup(to, opts) {
       opts = opts || {};
       const leadSeconds = opts.leadSeconds || 1;
+      const stepSeconds = opts.stepSeconds || 1;
       if (opts.lead && t < duration) { list.push({ t, say: opts.lead, rate: 'count' }); t += leadSeconds; }
       for (let n = 1; n <= to; n++) {
         if (t < duration) list.push({ t, say: COUNT_WORDS[n - 1], rate: 'count' });
-        t += 1;
+        t += stepSeconds;
       }
       return api;
     },
@@ -92,7 +97,7 @@ const BREAKS = {
   eyes: {
     id: 'eyes',
     name: 'Eyes',
-    duration: 88,
+    duration: 93,
     icon: '👁',
     description: 'The 20-20-20 rule and palming technique to reduce digital eye strain.',
     source: '[S2] American Optometric Association',
@@ -140,11 +145,11 @@ const BREAKS = {
           .build()
       },
       {
-        duration: 24,
+        duration: 29,
         instruction: 'Open your eyes. Blink slowly 10 times. Notice the difference.',
-        cues: cues(24)
+        cues: cues(29)
           .line('Gently open your eyes again.', 4)
-          .countup(10, { lead: 'Blink slowly.', leadSeconds: 2 })
+          .countup(10, { lead: 'Blink slowly.', leadSeconds: 2, stepSeconds: 1.5 })
           .line('Notice the difference in how your eyes feel.', 5)
           .line('Clarity. Moisture. Ease.', 3)
           .build()

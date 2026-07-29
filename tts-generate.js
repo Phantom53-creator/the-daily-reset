@@ -561,11 +561,21 @@ function concatWavsToMp3(files, outPath) {
   const args = ['-y'];
   files.forEach(f => args.push('-i', f));
   const filterInputs = files.map((_, i) => `[${i}:a]`).join('');
+  // Fixed bitrate (CBR), not VBR (`-q:a`) — found this session that a VBR
+  // encode can, on rare occasions, get a Xing/VBR header that disagrees with
+  // its real frame count: ffprobe and even a full ffmpeg decode both read the
+  // container's stated duration fine, but Chromium's own audio decoder
+  // computed a shorter duration from the (apparently slightly malformed)
+  // frames and genuinely stopped playback ~5s early — a real user-facing
+  // cutoff that no ffmpeg-based check could have caught. 96k comfortably
+  // covers the 64-85kbps this pipeline's mono speech was already averaging
+  // under VBR, so there's no audible quality change — CBR just removes the
+  // header-estimation ambiguity that caused it, at the source.
   args.push(
     '-filter_complex', `${filterInputs}concat=n=${files.length}:v=0:a=1[outa]`,
     '-map', '[outa]',
     '-ar', String(PCM_RATE), '-ac', '1',
-    '-c:a', 'libmp3lame', '-q:a', '2',
+    '-c:a', 'libmp3lame', '-b:a', '96k',
     outPath
   );
   execFileSync('ffmpeg', args, { stdio: 'pipe' });
