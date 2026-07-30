@@ -53,6 +53,7 @@ const ResetApp = {
     this.bindPlayer();
     this.bindLearning();
     this.bindSettings();
+    this.bindUpgrade();
     this.bindModals();
     this.bindNotice();
     this.bindReviewModal();
@@ -115,9 +116,7 @@ const ResetApp = {
   bindSidebarNav() {
     document.getElementById('nav-dashboard')?.addEventListener('click', () => { this.leavePlayers(); this.showDashboard(); });
     document.getElementById('nav-settings')?.addEventListener('click', () => { this.leavePlayers(); this.showSettings(); });
-    document.getElementById('nav-upgrade')?.addEventListener('click', () => {
-      this.showNotice('More on the way', 'Additional features are coming soon. Full access is free for now — enjoy everything The Daily Reset already offers.');
-    });
+    document.getElementById('nav-upgrade')?.addEventListener('click', () => { this.leavePlayers(); this.showUpgrade(); });
   },
 
   renderAccessPill() {
@@ -1218,6 +1217,94 @@ const ResetApp = {
     list.innerHTML = rows.map(([label, value]) =>
       `<li><span class="account-label">${label}</span><span class="account-value">${value}</span></li>`
     ).join('');
+  },
+
+  // ---------- Upgrade / premium account (separate from free access.js state) ----------
+
+  bindUpgrade() {
+    document.getElementById('upgrade-back')?.addEventListener('click', () => this.showDashboard());
+
+    document.getElementById('upgrade-email-form')?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('upgrade-email-btn');
+      const error = document.getElementById('upgrade-email-error');
+      const email = document.getElementById('upgrade-email').value.trim();
+      error.style.display = 'none';
+      btn.disabled = true; btn.textContent = 'Sending…';
+      const result = await window.requestPremiumCode(email);
+      btn.disabled = false; btn.textContent = 'Email me a sign-in code';
+      if (!result.ok) {
+        error.textContent = result.error || 'Could not send a code. Check the email and try again.';
+        error.style.display = 'block';
+        return;
+      }
+      document.getElementById('upgrade-email-form').style.display = 'none';
+      document.getElementById('upgrade-code-form').style.display = '';
+      const sentMsg = document.getElementById('upgrade-code-sent-msg');
+      sentMsg.textContent = `Code sent to ${email}. Enter it below.`;
+      sentMsg.style.display = 'block';
+      document.getElementById('upgrade-code').focus();
+    });
+
+    document.getElementById('upgrade-code-form')?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('upgrade-code-btn');
+      const error = document.getElementById('upgrade-code-error');
+      const email = document.getElementById('upgrade-email').value.trim();
+      const code = document.getElementById('upgrade-code').value.trim();
+      error.style.display = 'none';
+      btn.disabled = true; btn.textContent = 'Verifying…';
+      const result = await window.verifyPremiumCode(email, code);
+      btn.disabled = false; btn.textContent = 'Verify code';
+      if (!result.ok) {
+        error.textContent = result.error || "That code didn't work. Check it and try again.";
+        error.style.display = 'block';
+        return;
+      }
+      await this.renderUpgradeAccount();
+    });
+
+    document.getElementById('upgrade-change-email-link')?.addEventListener('click', () => {
+      document.getElementById('upgrade-code-form').style.display = 'none';
+      document.getElementById('upgrade-code-error').style.display = 'none';
+      document.getElementById('upgrade-code').value = '';
+      document.getElementById('upgrade-email-form').style.display = '';
+      document.getElementById('upgrade-email-error').style.display = 'none';
+    });
+
+    document.getElementById('upgrade-sign-out-btn')?.addEventListener('click', async () => {
+      await window.signOutPremium();
+      await this.renderUpgradeAccount();
+    });
+  },
+
+  async showUpgrade() {
+    this.showView('upgrade');
+    await this.renderUpgradeAccount();
+  },
+
+  async renderUpgradeAccount() {
+    const signedOut = document.getElementById('upgrade-signed-out');
+    const signedIn = document.getElementById('upgrade-signed-in');
+    const session = await window.getPremiumSession();
+    if (!session) {
+      signedOut.style.display = '';
+      signedIn.style.display = 'none';
+      document.getElementById('upgrade-email-form').style.display = '';
+      document.getElementById('upgrade-code-form').style.display = 'none';
+      document.getElementById('upgrade-email').value = '';
+      document.getElementById('upgrade-code').value = '';
+      return;
+    }
+    signedOut.style.display = 'none';
+    signedIn.style.display = '';
+    const tier = await window.getPremiumTier();
+    const tierText = tier === 'paid' ? 'Premium — active' : 'Free (premium features launching soon)';
+    const list = document.getElementById('upgrade-account-list');
+    list.innerHTML = [
+      ['Email', session.user.email],
+      ['Plan', tierText]
+    ].map(([label, value]) => `<li><span class="account-label">${label}</span><span class="account-value">${value}</span></li>`).join('');
   },
 
   syncVoiceGenderUI(gender) {

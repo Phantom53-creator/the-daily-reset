@@ -27,7 +27,7 @@
       <svg fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 11-4 0v-.09a1.65 1.65 0 00-1-1.51 1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 110-4h.09a1.65 1.65 0 001.51-1 1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06a1.65 1.65 0 001.82.33h0a1.65 1.65 0 001-1.51V3a2 2 0 114 0v.09a1.65 1.65 0 001 1.51h0a1.65 1.65 0 001.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06a1.65 1.65 0 00-.33 1.82v0a1.65 1.65 0 001.51 1H21a2 2 0 110 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
       Settings
     </button>
-    <button class="nav-item nav-item-soon" id="nav-upgrade" title="More features are on the way">
+    <button class="nav-item nav-item-soon" id="nav-upgrade" data-view="upgrade" title="More features are on the way">
       <svg fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M12 2l2.5 6.5L21 11l-6.5 2.5L12 20l-2.5-6.5L3 11l6.5-2.5z"/></svg>
       Upgrade
       <span class="soon-badge">Available Soon</span>
@@ -369,6 +369,38 @@
       <h3>Reset app data</h3>
       <p class="settings-sub">Clears your schedule, history, and preferences from this browser. Cannot be undone.</p>
       <button class="btn-danger" id="reset-data-btn">Clear all my data</button>
+    </div>
+  </section>
+
+  <!-- UPGRADE / PREMIUM ACCOUNT -->
+  <section class="view" id="view-upgrade" style="display:none;">
+    <button class="back-btn" id="upgrade-back">← Dashboard</button>
+    <h1 class="settings-title">Upgrade</h1>
+
+    <div class="settings-card">
+      <h3>Premium — coming soon</h3>
+      <p class="settings-sub">Premium features are still being built. Sign in with your email now to set up your account early — no password, nothing to pay yet — so you're ready the moment they launch.</p>
+
+      <div id="upgrade-signed-out">
+        <form id="upgrade-email-form" class="welcome-form">
+          <div class="form-field"><label for="upgrade-email">Email</label><input type="email" id="upgrade-email" required placeholder="jane@company.com" autocomplete="email"></div>
+          <button type="submit" class="btn-primary btn-block" id="upgrade-email-btn">Email me a sign-in code</button>
+          <p class="form-error" id="upgrade-email-error" style="display:none;"></p>
+        </form>
+
+        <form id="upgrade-code-form" class="welcome-form" style="display:none;">
+          <p class="form-success" id="upgrade-code-sent-msg" style="display:none;"></p>
+          <div class="form-field"><label for="upgrade-code">Sign-in code</label><input type="text" id="upgrade-code" required placeholder="Enter the code from the email" autocomplete="one-time-code" inputmode="numeric"></div>
+          <button type="submit" class="btn-primary btn-block" id="upgrade-code-btn">Verify code</button>
+          <p class="form-error" id="upgrade-code-error" style="display:none;"></p>
+          <button type="button" class="link-btn" id="upgrade-change-email-link">Use a different email</button>
+        </form>
+      </div>
+
+      <div id="upgrade-signed-in" style="display:none;">
+        <ul class="account-list" id="upgrade-account-list"></ul>
+        <button class="btn-secondary" id="upgrade-sign-out-btn">Sign out of premium account</button>
+      </div>
     </div>
   </section>
 

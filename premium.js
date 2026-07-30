@@ -1,4 +1,4 @@
-// premium.js — passwordless auth for the premium tier, via a 6-digit emailed
+// premium.js — passwordless auth for the premium tier, via a one-time emailed
 // code (not a clickable magic link). Completely separate from access.js's
 // free-tier flow (name+email, zero friction, localStorage only) — nothing
 // here touches that. A real account only gets created at the moment someone
@@ -25,7 +25,9 @@ const premiumClient = window.supabase.createClient(
   window.SUPABASE_CONFIG.publishableKey
 );
 
-// Emails a 6-digit code to sign in with. Returns { ok, error }.
+// Emails a one-time code to sign in with (length isn't fixed at 6 digits —
+// observed 8 digits live — so callers shouldn't assume a specific length).
+// Returns { ok, error }.
 async function requestPremiumCode(email) {
   const { error } = await premiumClient.auth.signInWithOtp({ email });
   return { ok: !error, error: error?.message || null };
