@@ -166,4 +166,8 @@ if (typeof window !== 'undefined') {
   window.getUserName = getUserName;
   window.getUserFirstName = getUserFirstName;
   window.submitReview = submitReview;
+  // Exposed so premium.js can reuse the same project config instead of
+  // duplicating it — this key is insert-only/public by design (see comment
+  // above), so exporting it changes nothing about what it can do.
+  window.SUPABASE_CONFIG = SUPABASE_CONFIG;
 }
