@@ -55,7 +55,14 @@ const CalendarReminders = {
     const durationMin = isLearning ? 5 : (b ? Math.round(b.duration / 60) : 5);
     const end = new Date(start.getTime() + durationMin * 60000);
     const now = new Date();
-    const uid = `reset-${index}-${slot.time.replace(':', '')}-${start.getFullYear()}@thedailyreset`;
+    // Stable across time-of-day AND year changes, unlike the old
+    // index+time+year UID — that baked the exact HH:MM and current year in,
+    // so changing a reminder's time (or just a new calendar year rolling
+    // over) silently produced a SECOND event on re-import instead of
+    // updating the original, since calendar apps match by UID. slot.id is
+    // the plan slot's fixed identity ('slot-1'/'slot-2'/'slot-3'/'learning'),
+    // set once and never changed by editing the time.
+    const uid = `reset-${slot.id || index}@thedailyreset`;
     const title = `The Daily Reset — ${slot.label}`;
     const desc = isLearning
       ? `Time for today's Lunch Break Learning episode — one idea, one story, one takeaway (3–5 min). Open the app: ${this.appUrl()}`
@@ -106,9 +113,49 @@ const CalendarReminders = {
     return lines.join('\r\n');
   },
 
-  // Trigger a download of the .ics file
+  // Whether this browser gets WebKit's native "Add to Calendar" handoff for
+  // text/calendar content instead of a forced Downloads-folder save. True on
+  // iOS for ANY browser there (Apple requires every iOS browser — Chrome,
+  // Firefox, Edge included — to run on WebKit under the hood), and on macOS
+  // specifically for Safari (Mac Chrome/Firefox use their own engines, not
+  // WebKit, so they don't get this). There's no feature-detection API for
+  // "does this browser show a native calendar-add sheet" — UA sniffing is the
+  // standard, accepted approach here since nothing else can answer it.
+  supportsNativeAdd() {
+    const ua = navigator.userAgent;
+    // iPadOS 13+ reports navigator.platform as 'MacIntel' like a real Mac —
+    // maxTouchPoints is the standard way to tell an iPad apart from a Mac.
+    const isIOS = /iPad|iPhone|iPod/.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+    if (isIOS) return true;
+    const isMac = /Macintosh/.test(ua) && navigator.maxTouchPoints <= 1;
+    const isSafariBrand = /Safari/.test(ua) && !/Chrome|Chromium|Edg|OPR|CriOS|FxiOS/.test(ua);
+    return isMac && isSafariBrand;
+  },
+
+  // Trigger the calendar add. Returns 'native' or 'download' so the caller
+  // can show the right follow-up message for what actually just happened.
   download(slots) {
     const ics = this.buildICS(slots);
+
+    if (this.supportsNativeAdd()) {
+      // No `download` attribute — a plain data: URL opened this way lets
+      // Safari/WebKit recognize the text/calendar content and offer its own
+      // native Add-to-Calendar handoff, instead of forcing a save to the
+      // Downloads folder that the customer then has to go find and open.
+      const dataUrl = 'data:text/calendar;charset=utf-8,' + encodeURIComponent(ics);
+      const a = document.createElement('a');
+      a.href = dataUrl;
+      a.target = '_blank';
+      a.rel = 'noopener';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      return 'native';
+    }
+
+    // Chrome/Edge/Firefox on Windows, Android, and non-Safari Mac have no
+    // equivalent inline handoff — this is the same download-then-open flow
+    // as any other file download, which already worked fine here.
     const blob = new Blob([ics], { type: 'text/calendar;charset=utf-8' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -118,6 +165,7 @@ const CalendarReminders = {
     a.click();
     document.body.removeChild(a);
     setTimeout(() => URL.revokeObjectURL(url), 1000);
+    return 'download';
   }
 };
 

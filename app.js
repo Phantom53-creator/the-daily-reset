@@ -580,18 +580,25 @@ const ResetApp = {
   // Download an .ics of today's plan as recurring daily reminders. The user's own
   // calendar then fires the alerts on every device, even when the app is closed.
   downloadCalendar(hintId) {
-    const slots = this.getTodaysPlan().map(s => ({ time: s.time, label: s.label, breakId: s.breakId }));
+    const slots = this.getTodaysPlan().map(s => ({ id: s.slot, time: s.time, label: s.label, breakId: s.breakId }));
     if (document.getElementById('learning-toggle')?.checked) {
       const lt = document.getElementById('learning-time-input')?.value || '12:30';
-      slots.push({ time: lt, label: 'Lunch Break Learning', kind: 'learning' });
+      slots.push({ id: 'learning', time: lt, label: 'Lunch Break Learning', kind: 'learning' });
     }
-    window.CalendarReminders?.download(slots);
+    const method = window.CalendarReminders?.download(slots);
     const times = slots.map(s => this.formatClock(s.time)).join(', ');
+    const isNative = method === 'native';
+    const hintText = isNative
+      ? `Opening your calendar — tap Add to save your ${times} reminders. They repeat every day.`
+      : `Saved “the-daily-reset.ics”. Open it to add your ${times} reminders — they repeat every day.`;
+    const noticeBody = isNative
+      ? `Your calendar app should open with an "Add" prompt for your daily reminders (${times}). They repeat every day and will alert you even when the app is closed.`
+      : `Open the downloaded file “the-daily-reset.ics” to add your daily reminders (${times}). They repeat every day and will alert you even when the app is closed.`;
     if (hintId) {
       const hint = document.getElementById(hintId);
-      if (hint) { hint.textContent = `Saved “the-daily-reset.ics”. Open it to add your ${times} reminders — they repeat every day.`; hint.style.display = 'block'; }
+      if (hint) { hint.textContent = hintText; hint.style.display = 'block'; }
     } else {
-      this.showNotice('Calendar file saved', `Open the downloaded file “the-daily-reset.ics” to add your daily reminders (${times}). They repeat every day and will alert you even when the app is closed.`);
+      this.showNotice(isNative ? 'Opening your calendar' : 'Calendar file saved', noticeBody);
     }
   },
 
