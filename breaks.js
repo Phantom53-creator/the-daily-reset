@@ -173,16 +173,16 @@ const BREAKS = {
   shoulders: {
     id: 'shoulders',
     name: 'Shoulders',
-    duration: 166,
+    duration: 163.5,
     icon: '👐',
     description: 'Seated tension release for trapezius and neck. Reverses forward-head strain.',
     source: '[S3] Hansraj, Surgical Technology International (2014)',
     isFree: false,
     steps: [
       {
-        duration: 14,
+        duration: 13,
         instruction: 'Sit tall. Feet flat. Let your arms hang loose. Notice where you hold tension.',
-        cues: cues(14)
+        cues: cues(13)
           .line('Sit tall in your chair, with both feet flat on the floor.', 4)
           .line('Let your arms hang loose and heavy by your sides.', 4)
           .line("Notice where you're holding tension.", 3)
@@ -227,10 +227,10 @@ const BREAKS = {
           .build()
       },
       {
-        duration: 38,
+        duration: 36.5,
         instruction: 'Interlace fingers behind head. Gently press head back into hands. Hold 10 sec. Release. Repeat 2 times.',
-        cues: cues(38)
-          .line('Press the back of your head into your hands.', 5)
+        cues: cues(36.5)
+          .line('Press the back of your head into your hands.', 3.5)
           .countdown(10, { lead: 'Hold' })
           .line('And release. Rest a moment.', 3)
           .line('Once more.', 2)
@@ -266,7 +266,7 @@ const BREAKS = {
   stand: {
     id: 'stand',
     name: 'Stand',
-    duration: 103,
+    duration: 101,
     icon: '🧍',
     description: 'Two-minute standing reset with hip extension. Restores circulation and alertness.',
     source: '[S4] Harvard Health / sedentary behaviour research',
@@ -302,9 +302,9 @@ const BREAKS = {
           .build()
       },
       {
-        duration: 20,
+        duration: 18,
         instruction: 'Stand tall. Reach both arms overhead. Stretch upward. Hold 10 sec.',
-        cues: cues(20)
+        cues: cues(18)
           .line('Reach both arms up overhead.', 4)
           .countdown(10, { lead: 'Hold' })
           .line('And slowly lower your arms.', 5)
