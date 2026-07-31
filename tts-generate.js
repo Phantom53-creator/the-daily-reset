@@ -1,19 +1,24 @@
 #!/usr/bin/env node
-// tts-generate.js — The Daily Reset voice generator (Telnyx REST TTS)
+// tts-generate.js — The Daily Reset voice generator (Speechify TTS — PRODUCTION PROVIDER)
 //
-// Standalone Text-to-Speech only. This calls Telnyx's plain TTS endpoint
-// (POST /v2/text-to-speech) — the same one used to build downloadable MP3s
-// via curl or the OpenAI-compatible SDK in Telnyx's own docs. It never
-// touches Call Control, Programmable Voice, or any telephony/Connection
-// setup — there is no phone call involved anywhere in this script.
+// Speechify is what every live voice in the app actually is: Imogen (female)
+// and Edmund (male) for break steps + quotes, Marian/Richard for learning
+// episodes. Telnyx was evaluated early on and abandoned after it couldn't be
+// gotten working reliably — --provider defaults to speechify for exactly that
+// reason, so a bare command without --provider matches what's actually live.
+// ElevenLabs was also evaluated (voice-tests/) but never shipped. Telnyx and
+// ElevenLabs support stay in this file only for side-by-side comparison via
+// --provider=telnyx|elevenlabs --label=<name> (never the live audio/ folder)
+// — never assume either is what's live without checking voice-tests/index.json
+// or git history first.
 //
 // WHY BREAK STEPS ARE BUILT DIFFERENTLY FROM QUOTES/EPISODES:
 // Each break step's on-screen timer and countdowns are built from a `cues`
 // array in breaks.js — {t, say, rate} — where "five", "four", "three"... are
-// each meant to land on their own second. Telnyx's SSML support is limited to
-// the AWS/Azure providers, not Telnyx's own native voices, so we can't rely on
-// SSML <break> tags to guarantee that timing regardless of which voice you
-// pick. Instead, for break steps this script:
+// each meant to land on their own second. Rather than depend on any one
+// provider's SSML <break> tags being reliable enough for that (a per-provider
+// gamble this pipeline deliberately avoids), this script never uses SSML for
+// cue timing at all, regardless of provider. Instead, for break steps it:
 //   1. Synthesizes each cue as its own short clip
 //   2. Measures its real spoken length (ffprobe)
 //   3. Pads it with exact silence so the NEXT cue still starts on schedule
@@ -38,19 +43,19 @@
 // changing these thresholds:
 //   node tts-generate.js --breaks=all --gender=female --qa-only
 //
-// USAGE
-//   node tts-generate.js --voice="Telnyx.NaturalHD.astra" --gender=female --all
+// USAGE (provider defaults to speechify — the live production provider)
+//   node tts-generate.js --voice="imogen_32" --gender=female --all
 //   node tts-generate.js --voice="..." --gender=female --breaks
 //   node tts-generate.js --voice="..." --gender=female --breaks=eyes,shoulders
 //   node tts-generate.js --voice="..." --gender=female --breaks=eyes-step-0
-//   node tts-generate.js --voice="..." --gender=male   --learning=lunch-001,lunch-002
+//   node tts-generate.js --voice="edmund" --gender=male --learning=lunch-001,lunch-002
 //   node tts-generate.js --voice="..." --gender=female --quotes
 //   node tts-generate.js --voice="..." --gender=female --all --dry-run
 //   node tts-generate.js --voice="..." --gender=female --all --force
 //   node tts-generate.js --voice="..." --gender=female --all --mirror-dir=~/Desktop/voice-exports
 //
-// MULTIPLE PLATFORMS (comparing Telnyx / ElevenLabs / Speechify side by side)
-//   --provider=telnyx|elevenlabs|speechify   (default: telnyx)
+// COMPARISON MODE (Telnyx / ElevenLabs — evaluated, neither is live)
+//   --provider=telnyx|elevenlabs|speechify   (default: speechify)
 //   --label=<name>   writes into voice-tests/<name>/ instead of the live
 //                     audio/ folder — nothing here ever touches the app or
 //                     overwrites another platform's test files, and the live
@@ -81,7 +86,7 @@ const ROOT = __dirname;
 // ---------- CLI args ----------
 
 function parseArgs(argv) {
-  const args = { breaks: null, learning: null, quotes: null, words: null, all: false, dryRun: false, force: false, provider: 'telnyx', qaOnly: false };
+  const args = { breaks: null, learning: null, quotes: null, words: null, all: false, dryRun: false, force: false, provider: 'speechify', qaOnly: false };
   for (const raw of argv) {
     const [flag, ...rest] = raw.replace(/^--/, '').split('=');
     const value = rest.join('=');
@@ -133,6 +138,13 @@ const QUOTES = loadDataModule('quotes.js', 'QUOTES');
 const LEARNING_EPISODES = loadDataModule('learning.js', 'LEARNING_EPISODES');
 const WORDS = loadDataModule('words.js', 'WORDS');
 
+// Premium break-sequence variants live outside build/ entirely (sibling
+// premium-content/ dir, plain CommonJS, same reasoning as db-tools/) so
+// there's no path by which they could end up in the public repo by accident.
+// Optional — a checkout without that sibling directory just gets none.
+const PREMIUM_BREAKS_PATH = path.join(ROOT, '..', 'premium-content', 'premium-breaks.js');
+const PREMIUM_BREAKS = fs.existsSync(PREMIUM_BREAKS_PATH) ? require(PREMIUM_BREAKS_PATH) : {};
+
 // Extract the exact quote lead-in line from app.js so it never drifts out of
 // sync with what the app actually speaks.
 const appJsSrc = fs.readFileSync(path.join(ROOT, 'app.js'), 'utf8');
@@ -151,8 +163,16 @@ function buildCatalog() {
   // 10-variants-per-topic expansion can share audio for content that repeats
   // across sequences rather than duplicating it. Steps without a clipId keep
   // today's exact positional filename, so existing content is untouched.
+  // Premium variants (premium-content/premium-breaks.js) go through the exact
+  // same catalog/QA pipeline as free breaks, tagged `premium: true` so main()
+  // can refuse to ever write them anywhere but voice-tests/ (see --label check).
+  const allBreakSources = [
+    ...Object.entries(BREAKS).map(([id, brk]) => [id, brk, false]),
+    ...Object.entries(PREMIUM_BREAKS).map(([id, brk]) => [id, brk, true])
+  ];
+
   const clipGroups = new Map(); // clipId -> [{ breakId, i, step }]
-  for (const [breakId, brk] of Object.entries(BREAKS)) {
+  for (const [breakId, brk] of allBreakSources) {
     brk.steps.forEach((step, i) => {
       const clipId = step.clipId || `${breakId}-step${i + 1}`;
       if (!clipGroups.has(clipId)) clipGroups.set(clipId, []);
@@ -178,7 +198,7 @@ function buildCatalog() {
     }
   }
 
-  for (const [breakId, brk] of Object.entries(BREAKS)) {
+  for (const [breakId, brk, premium] of allBreakSources) {
     brk.steps.forEach((step, i) => {
       const clipId = step.clipId || `${breakId}-step${i + 1}`;
       items.push({
@@ -186,7 +206,8 @@ function buildCatalog() {
         id: `${breakId}-step-${i}`,
         groupId: breakId,
         clipId,
-        label: `${brk.name} — step ${i + 1}: ${step.instruction}`,
+        premium,
+        label: `${premium ? 'PREMIUM — ' : ''}${brk.name} — step ${i + 1}: ${step.instruction}`,
         filePath: g => `audio/breaks/${clipId}-${g}.mp3`,
         duration: step.duration,
         cues: step.cues
@@ -253,13 +274,21 @@ function buildCatalog() {
 // ---------- Selection ----------
 
 function selectItems(catalog, args) {
-  if (args.all) return catalog;
+  // Same rule as the 'all' wildcard below: bulk/wildcard selection means all
+  // FREE content — premium variants only ever come in via an explicit id.
+  if (args.all) return catalog.filter(i => !i.premium);
 
   const selected = [];
   const pick = (kind, selector) => {
     if (!selector) return;
     const pool = catalog.filter(i => i.kind === kind);
-    if (selector === 'all') { selected.push(...pool); return; }
+    if (selector === 'all') {
+      // The "all" wildcard means "all FREE content" — premium variants only
+      // ever get pulled in by their exact id (e.g. --breaks=eyes-v2), never
+      // swept up in a bulk regeneration/regression-check of the live catalog.
+      selected.push(...pool.filter(i => !i.premium));
+      return;
+    }
     selector.forEach(want => {
       const matches = pool.filter(i => i.id === want || i.groupId === want);
       if (matches.length === 0) console.warn(`  ! No ${kind} item matches "${want}" — skipping`);
@@ -628,9 +657,15 @@ function buildSynthesisSegments(cues, duration) {
       const nextT = (i + 1 < cues.length) ? cues[i + 1].t : duration;
       segments.push({ kind: 'count', say: cues[i].say, startT: cues[i].t, windowSeconds: nextT - cues[i].t });
       i++;
+    } else if (cues[i].rate === 'pause') {
+      // A deliberate silent gap (cues().pause()) — real quiet time, not TTS
+      // output, so it always breaks a narration group rather than merging
+      // into one, same as a count cue does.
+      segments.push({ kind: 'pause', seconds: cues[i].pauseSeconds, startT: cues[i].t });
+      i++;
     } else {
       const start = i;
-      while (i < cues.length && cues[i].rate !== 'count') i++;
+      while (i < cues.length && cues[i].rate !== 'count' && cues[i].rate !== 'pause') i++;
       const group = cues.slice(start, i);
       const nextT = (i < cues.length) ? cues[i].t : duration;
       segments.push({ kind: 'group', say: group.map(c => c.say).join(' '), startT: group[0].t, windowSeconds: nextT - group[0].t });
@@ -658,6 +693,16 @@ async function generateBreakStep(item, provider, apiKey, voice, speed, countSpee
     for (let i = 0; i < units.length; i++) {
       if (i > 0) await sleep(200); // small pacing gap between rapid calls
       const unit = units[i];
+
+      if (unit.kind === 'pause') {
+        // No TTS call at all — a deliberate silent gap is exactly `seconds`
+        // long by construction, not something to measure/pad/compress.
+        const silPath = path.join(tmpDir, `pause-${i}.wav`);
+        makeSilence(unit.seconds, silPath);
+        segments.push(silPath);
+        continue;
+      }
+
       const unitSpeed = unit.kind === 'count' ? countSpeed : speed;
       const raw = await callWithRetry(provider, apiKey, unit.say, voice, unitSpeed, 'wav', opts); // lossless — no MP3 round-trip until the final encode
       const unitPath = path.join(tmpDir, `unit-${i}.wav`);
@@ -793,6 +838,18 @@ async function main() {
   const catalog = buildCatalog();
   const selected = selectItems(catalog, args);
   if (selected.length === 0) { console.log('Nothing matched your selection.'); return; }
+
+  // Premium content must never land in the public audio/ folder — --label is
+  // what redirects output to voice-tests/ (gitignored, never deployed)
+  // instead of the live path, so refuse outright rather than risk it.
+  const premiumWithoutLabel = selected.filter(i => i.premium && !args.label);
+  if (premiumWithoutLabel.length > 0) {
+    printUsageAndExit(
+      `Refusing: ${premiumWithoutLabel.length} selected item(s) are premium content, and no --label was given. ` +
+      `Premium audio must only ever be written under voice-tests/<label>/, never the public audio/ folder. ` +
+      `Pass --label=<name> to proceed.`
+    );
+  }
 
   // --qa-only re-checks files ALREADY on disk with no API key, no generation,
   // and no risk to existing content — used to re-verify the whole library as
