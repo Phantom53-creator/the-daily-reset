@@ -81,12 +81,30 @@ function getDailyQuote(category, dayIndex) {
   return cat[dayIndex % cat.length];
 }
 
+// Spreads a smaller list evenly across a larger one, proportional to their
+// sizes, instead of concatenating them (which clusters the smaller list into
+// one unbroken run — e.g. 6 faith quotes tacked onto the end of 12 general
+// ones meant every 18-day cycle showed 12 straight days of general quotes,
+// then 6 straight days of nothing but Bible quotes, not a genuine blend).
+// Works correctly regardless of how many quotes end up in either pool.
+function interleaveProportional(major, minor) {
+  const total = major.length + minor.length;
+  const result = [];
+  let mi = 0, ni = 0;
+  for (let i = 0; i < total; i++) {
+    const minorDueByNow = Math.floor((i + 1) * minor.length / total);
+    if (ni < minorDueByNow) result.push(minor[ni++]);
+    else result.push(major[mi++]);
+  }
+  return result;
+}
+
 // Helper: get the morning anchor quote by day — blends the general pool with
 // the faith (Bible) quotes so both rotate through the app's single most-seen
 // quote slot (dashboard card + once-daily splash), without touching any of
 // the break-specific closing-quote categories (focus/tension/movement/etc).
 function getMorningQuote(dayIndex) {
-  const combined = [...QUOTES.general, ...QUOTES.faith];
+  const combined = interleaveProportional(QUOTES.general, QUOTES.faith);
   return combined[dayIndex % combined.length];
 }
 
