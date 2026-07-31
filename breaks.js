@@ -364,7 +364,7 @@ const BREAKS = {
   posture: {
     id: 'posture',
     name: 'Posture',
-    duration: 161,
+    duration: 157,
     icon: '🪑',
     description: 'Forward-head correction with chin tucks and scapular retraction. Opens the diaphragm.',
     source: '[S6] Kolar et al., Clinical Biomechanics (2012)',
@@ -427,19 +427,19 @@ const BREAKS = {
           .build()
       },
       {
-        duration: 22,
+        duration: 18,
         instruction: 'Sit tall. Place one hand on belly. Breathe into belly 5 times (diaphragmatic breathing).',
-        cues: cues(22)
-          .line('Rest one hand gently on your belly.', 8)
+        cues: cues(18)
+          .line('Rest one hand gently on your belly.', 6)
           .line('Breathe in.', 1)
           .line('And out.', 1)
           .line('Again — in.', 1)
           .line('And out.', 1)
-          .line('Keep it going — in.', 2)
+          .line('Keep it going — in.', 1)
           .line('And out.', 1)
-          .line('One more — in.', 2)
+          .line('One more — in.', 1)
           .line('And out.', 1)
-          .line('Last one — in.', 2)
+          .line('Last one — in.', 1)
           .line('And out. Well done.', 2)
           .build()
       },
