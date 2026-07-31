@@ -67,6 +67,15 @@ function cues(duration) {
       }
       return api;
     },
+    // A genuine silent gap — real quiet time for the user to actually do the
+    // movement, not another sentence squeezed in to avoid dead air. Without
+    // this, narration-only steps (no countdown/countup) had no way to get the
+    // same real pacing gaps that counted reps already have.
+    pause(seconds) {
+      if (t < duration) list.push({ t, say: '', rate: 'pause', pauseSeconds: seconds });
+      t += seconds;
+      return api;
+    },
     build() { return list; }
   };
   return api;
@@ -97,7 +106,7 @@ const BREAKS = {
   eyes: {
     id: 'eyes',
     name: 'Eyes',
-    duration: 93,
+    duration: 102.5,
     icon: '👁',
     description: 'The 20-20-20 rule and palming technique to reduce digital eye strain.',
     source: '[S2] American Optometric Association',
@@ -134,22 +143,25 @@ const BREAKS = {
           .build()
       },
       {
-        duration: 18,
+        duration: 22.5,
         instruction: 'With eyes still closed, look up, down, left, right. Repeat 3 times slowly.',
-        cues: cues(18)
+        cues: cues(22.5)
           .line('Keep your eyes closed now.', 2)
-          .line('Slowly look up... and then down.', 3)
-          .line("Now look left... and then right. That's round one.", 5)
-          .line('Round two — up... down... left... and right.', 5)
-          .line('Last round, nice and slow. Then rest.', 3)
+          .line('Slowly look up... and then down.', 3.5)
+          .pause(1)
+          .line("Now look left... and then right. That's round one.", 4.5)
+          .pause(1)
+          .line('Round two — up... down... left... and right.', 5.5)
+          .pause(0.5)
+          .line('Last round, nice and slow. Then rest.', 4.5)
           .build()
       },
       {
-        duration: 29,
+        duration: 34,
         instruction: 'Open your eyes. Blink slowly 10 times. Notice the difference.',
-        cues: cues(29)
+        cues: cues(34)
           .line('Gently open your eyes again.', 4)
-          .countup(10, { lead: 'Blink slowly.', leadSeconds: 2, stepSeconds: 1.5 })
+          .countup(10, { lead: 'Blink slowly.', leadSeconds: 2, stepSeconds: 2 })
           .line('Notice the difference in how your eyes feel.', 5)
           .line('Clarity. Moisture. Ease.', 3)
           .build()
