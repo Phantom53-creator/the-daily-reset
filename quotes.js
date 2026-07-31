@@ -7,7 +7,7 @@ const QUOTES = {
     { text: "Almost everything will work again if you unplug it for a few minutes, including you.", author: "Anne Lamott" },
     { text: "The successful warrior is the average man, with laser-like focus.", author: "Bruce Lee" },
     { text: "Where attention goes, energy flows.", author: "James Redfield" },
-    { text: "It is during our darkest moments that we must focus to see the light.", author: "Aristotle" },
+    { text: "It is during our darkest moments that we must focus to see the light.", author: "Aristotle (attributed)" },
     { text: "My mind is never clearer than when I am looking at something far away.", author: "Mary Oliver" },
     { text: "The quieter you become, the more you can hear.", author: "Ram Dass" }
   ],
@@ -52,14 +52,14 @@ const QUOTES = {
     { text: "Rest is not the enemy of ambition. It is its foundation.", author: "Shawn Achor (adapted)" },
     { text: "You do not rise to the level of your goals. You fall to the level of your systems.", author: "James Clear" },
     { text: "The best time to plant a tree was 20 years ago. The second best time is now.", author: "Chinese Proverb" },
-    { text: "What gets measured gets managed.", author: "Peter Drucker" },
+    { text: "What gets measured gets managed.", author: "Peter Drucker (attributed)" },
     { text: "We are what we repeatedly do. Excellence, then, is not an act, but a habit.", author: "Will Durant (often attributed to Aristotle)" },
     { text: "The obstacle is the path.", author: "Marcus Aurelius (attributed)" },
     { text: "It is not that we have a short time to live, but that we waste a lot of it.", author: "Seneca" },
     { text: "You have power over your mind — not outside events. Realize this, and you will find strength.", author: "Marcus Aurelius" },
     { text: "He who has a why to live for can bear almost any how.", author: "Friedrich Nietzsche" },
-    { text: "The wound is the place where the Light enters you.", author: "Rumi" },
-    { text: "Between stimulus and response there is a space. In that space is our power to choose our response.", author: "Viktor Frankl" },
+    { text: "The wound is the place where the Light enters you.", author: "Rumi (attributed)" },
+    { text: "Between stimulus and response there is a space. In that space is our power to choose our response.", author: "Viktor Frankl (attributed)" },
     { text: "Sometimes the most productive thing you can do is rest.", author: "Mark Black" }
   ],
 
