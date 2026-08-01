@@ -360,6 +360,7 @@ const ResetApp = {
     card.style.display = 'block';
     document.getElementById('dash-quote-text').textContent = quote.text;
     document.getElementById('dash-quote-author').textContent = `— ${quote.author}`;
+    this.markQuoteShown(quote);
   },
 
   maybeShowQuoteSplash() {
@@ -370,6 +371,24 @@ const ResetApp = {
     document.getElementById('splash-quote-text').textContent = quote.text;
     document.getElementById('splash-quote-author').textContent = `— ${quote.author}`;
     document.getElementById('quote-splash').style.display = 'flex';
+  },
+
+  // Same-day quote-repeat guard — the dashboard's quote-of-the-day is
+  // deterministic per day, but after-break closing quotes are a random draw
+  // from the same pool, so without this, completing 2-3 breaks could
+  // coincidentally repeat the dashboard's quote or each other in one day.
+  getShownQuotesToday() {
+    const todayKey = this.getTodayKey();
+    const raw = JSON.parse(localStorage.getItem('reset_quotes_shown_today') || 'null');
+    if (!raw || raw.day !== todayKey) return { day: todayKey, keys: [] };
+    return raw;
+  },
+
+  markQuoteShown(quote) {
+    const state = this.getShownQuotesToday();
+    const key = `${quote.category}-${quote.index}`;
+    if (!state.keys.includes(key)) state.keys.push(key);
+    localStorage.setItem('reset_quotes_shown_today', JSON.stringify(state));
   },
 
   // ---------- Review nudge ----------
@@ -783,15 +802,17 @@ const ResetApp = {
     document.getElementById('player-audio-source').style.display = 'none';
     this.renderStepDots();
 
-    // Closing quote — resolve with its index so a recording can map to it exactly.
-    const category = this.state.currentBreak.closingQuote?.category || 'general';
-    const catArr = window.QUOTES?.[category] || window.QUOTES?.general || [];
-    const quoteIndex = catArr.length ? this.state.dayIndex % catArr.length : 0;
-    const quote = catArr[quoteIndex];
+    // Closing quote — a random pick from the same pool as the dashboard,
+    // independent of break topic, excluding anything already shown today (the
+    // dashboard's quote-of-the-day and any earlier closing quote) so
+    // completing several breaks in one day doesn't repeat itself.
+    const shownToday = this.getShownQuotesToday();
+    const quote = window.getRandomClosingQuote?.(shownToday.keys);
     if (quote) {
+      this.markQuoteShown(quote);
       document.getElementById('player-quote').style.display = 'block';
       document.getElementById('player-quote-text').textContent = `“${quote.text}” — ${quote.author}`;
-      this.speakClosingQuote(category, quoteIndex, quote);
+      this.speakClosingQuote(quote.category, quote.index, quote);
     }
 
     const history = JSON.parse(localStorage.getItem('reset_break_history') || '[]');
