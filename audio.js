@@ -4,18 +4,59 @@
 // This means voice quality is identical on every computer once recordings are added,
 // and the app still works fully before they are.
 
+// 50ms of true silence (8kHz mono 8-bit WAV) used only to "unlock" the
+// shared <audio> element on the first real tap — see unlock() below.
+const SILENT_CLIP = 'data:audio/wav;base64,UklGRrQBAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YZABAACAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA';
+
 const AudioEngine = {
   enabled: true,
   gender: 'female',
-  player: null,          // HTMLAudioElement for recorded playback
+  player: null,          // one persistent HTMLAudioElement, reused for every clip
   mode: null,            // 'recorded' | 'tts' | null
   onTimeUpdate: null,
   onEnded: null,
+  unlocked: false,
 
   init() {
     const saved = JSON.parse(localStorage.getItem('reset_voice_settings') || '{}');
     if (saved.gender) this.gender = saved.gender;
     if (saved.enabled !== undefined) this.enabled = saved.enabled;
+  },
+
+  // Lazily creates the single reusable <audio> element. Mobile browsers grant
+  // "may play with sound" to the ELEMENT that was first played from a real
+  // tap, not to the page in general — a brand-new `new Audio()` instantiated
+  // later from a timer or an onended callback (exactly how step 2+ of a
+  // break, or the Today's Word → bridge → episode chain, fire) is treated as
+  // a fresh autoplay attempt and silently blocked, even right after the same
+  // element played fine a moment earlier. Reusing one element and only
+  // swapping its src keeps the original tap's permission attached.
+  getPlayer() {
+    if (!this.player) {
+      this.player = new Audio();
+      this.player.setAttribute('playsinline', '');
+      this.player.preload = 'auto';
+      if (typeof document !== 'undefined' && document.body) {
+        this.player.style.display = 'none';
+        document.body.appendChild(this.player);
+      }
+    }
+    return this.player;
+  },
+
+  // Primes the shared element with a real, gesture-tied play() so later
+  // programmatic src-swaps + play() calls inherit that permission instead of
+  // being treated as fresh autoplay. Call once, from the very first tap
+  // anywhere in the app — see bindReminders() in app.js.
+  unlock() {
+    if (this.unlocked) return;
+    this.unlocked = true;
+    const player = this.getPlayer();
+    player.src = SILENT_CLIP;
+    const done = () => { player.pause(); player.currentTime = 0; };
+    const playPromise = player.play();
+    if (playPromise && playPromise.then) playPromise.then(done).catch(() => {});
+    else done();
   },
 
   manifest() {
@@ -105,8 +146,45 @@ const AudioEngine = {
       this.player.onended = null;
       this.player.onerror = null;
       this.player.ontimeupdate = null;
-      this.player = null;
+      this.player.onloadedmetadata = null;
+      // Deliberately NOT nulling this.player — it's the one shared element
+      // that's been "unlocked" by a real tap; discarding it would force the
+      // next clip onto a brand-new element, losing that mobile permission.
     }
+  },
+
+  // Fires if playback was requested but neither a 'playing' event nor a TTS
+  // 'start' arrived within the watchdog window — the surest sign a mobile
+  // browser silently blocked this attempt rather than genuinely erroring.
+  // app.js wires onStuck to show, and onAttemptStart to hide, a small
+  // "tap to enable sound" recovery control.
+  onStuck: null,
+  onAttemptStart: null,
+  _watchdog: null,
+  _retryFn: null,
+
+  armWatchdog(retryFn) {
+    this.disarmWatchdog();
+    if (this.onAttemptStart) this.onAttemptStart();
+    this._retryFn = retryFn;
+    this._watchdog = setTimeout(() => {
+      this._watchdog = null;
+      if (this.onStuck) this.onStuck();
+    }, 2500);
+  },
+
+  disarmWatchdog() {
+    if (this._watchdog) { clearTimeout(this._watchdog); this._watchdog = null; }
+  },
+
+  // Re-attempts the most recent playback request. Only ever called from a
+  // fresh tap on the recovery control, so it's inherently gesture-tied and
+  // succeeds even under the strictest autoplay policy.
+  retry() {
+    this.disarmWatchdog();
+    const fn = this._retryFn;
+    this._retryFn = null;
+    if (fn) fn();
   },
 
   // --- Short narration (break steps, cues) ---
@@ -115,25 +193,29 @@ const AudioEngine = {
   narrate(src, text, onEnd, rate) {
     if (!this.enabled) { if (onEnd) onEnd(); return; }
     this.stop();
+    this.armWatchdog(() => this.narrate(src, text, onEnd, rate));
 
     if (this.hasRecording(src)) {
       this.mode = 'recorded';
-      this.player = new Audio(src);
-      this.player.onended = () => { if (onEnd) onEnd(); };
-      this.player.onerror = () => {
+      const player = this.getPlayer();
+      player.onended = () => { this.disarmWatchdog(); if (onEnd) onEnd(); };
+      player.onerror = () => {
         // File listed in manifest but missing/unplayable — fall back to voice
         this.silenceAbandonedPlayer();
         this.mode = 'tts';
-        window.VoiceSystem?.speak(text, onEnd, rate);
+        window.VoiceSystem?.speak(text, onEnd, rate, () => this.disarmWatchdog());
       };
-      this.player.play().catch(() => {
+      player.addEventListener('playing', () => this.disarmWatchdog(), { once: true });
+      player.src = src;
+      player.load();
+      player.play().catch(() => {
         this.silenceAbandonedPlayer();
         this.mode = 'tts';
-        window.VoiceSystem?.speak(text, onEnd, rate);
+        window.VoiceSystem?.speak(text, onEnd, rate, () => this.disarmWatchdog());
       });
     } else {
       this.mode = 'tts';
-      window.VoiceSystem?.speak(text, onEnd, rate);
+      window.VoiceSystem?.speak(text, onEnd, rate, () => this.disarmWatchdog());
     }
   },
 
@@ -145,28 +227,38 @@ const AudioEngine = {
   playEpisode(episode, startAtSeconds, callbacks) {
     if (!this.enabled) return null;
     this.stop();
+    this.armWatchdog(() => this.playEpisode(episode, startAtSeconds, callbacks));
     const src = this.episodeSrc(episode.id);
     this.onTimeUpdate = callbacks?.onTimeUpdate || null;
     this.onEnded = callbacks?.onEnded || null;
 
     if (this.hasRecording(src)) {
       this.mode = 'recorded';
-      this.player = new Audio(src);
-      this.player.currentTime = startAtSeconds || 0;
-      this.player.ontimeupdate = () => {
-        if (this.onTimeUpdate) this.onTimeUpdate(this.player.currentTime, this.player.duration || episode.duration);
+      const player = this.getPlayer();
+      const startAt = startAtSeconds || 0;
+      player.onloadedmetadata = () => { if (startAt) player.currentTime = startAt; };
+      player.ontimeupdate = () => {
+        this.disarmWatchdog();
+        if (this.onTimeUpdate) this.onTimeUpdate(player.currentTime, player.duration || episode.duration);
       };
-      this.player.onended = () => { if (this.onEnded) this.onEnded(); };
-      this.player.play().catch(() => {
+      player.onended = () => { if (this.onEnded) this.onEnded(); };
+      player.onerror = () => {
         this.silenceAbandonedPlayer();
         this.mode = 'tts';
-        window.VoiceSystem?.speak(episode.transcript, this.onEnded);
+        window.VoiceSystem?.speak(episode.transcript, this.onEnded, undefined, () => this.disarmWatchdog());
+      };
+      player.src = src;
+      player.load();
+      player.play().catch(() => {
+        this.silenceAbandonedPlayer();
+        this.mode = 'tts';
+        window.VoiceSystem?.speak(episode.transcript, this.onEnded, undefined, () => this.disarmWatchdog());
       });
       return 'recorded';
     }
 
     this.mode = 'tts';
-    window.VoiceSystem?.speak(episode.transcript, this.onEnded);
+    window.VoiceSystem?.speak(episode.transcript, this.onEnded, undefined, () => this.disarmWatchdog());
     return 'tts';
   },
 
@@ -181,11 +273,14 @@ const AudioEngine = {
   },
 
   stop() {
+    this.disarmWatchdog();
     if (this.player) {
       this.player.pause();
       this.player.ontimeupdate = null;
       this.player.onended = null;
-      this.player = null;
+      this.player.onerror = null;
+      this.player.onloadedmetadata = null;
+      // Element itself is kept alive and reused — see getPlayer()/unlock().
     }
     window.VoiceSystem?.stop();
     this.mode = null;

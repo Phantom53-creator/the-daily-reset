@@ -58,6 +58,7 @@ const ResetApp = {
     this.bindNotice();
     this.bindReviewModal();
     this.bindReminders();
+    this.bindAudioRecovery();
     this.loadSettings();
     this.renderPlanEditor();
     this.renderAccessPill();
@@ -102,6 +103,37 @@ const ResetApp = {
     window.scrollTo(0, 0);
   },
 
+  // Surfaces a "tap to enable sound" control if a mobile browser silently
+  // blocks playback (see AudioEngine.armWatchdog) — no code-side fix can
+  // guarantee success on every device/OS combination, so this gives the user
+  // an unmistakable, one-tap recovery instead of permanent silence.
+  bindAudioRecovery() {
+    const playerBtn = document.getElementById('player-audio-recover');
+    const learningBtn = document.getElementById('learning-audio-recover');
+
+    if (window.AudioEngine) {
+      window.AudioEngine.onStuck = () => {
+        const inPlayer = document.getElementById('view-player')?.style.display !== 'none';
+        const inLearning = document.getElementById('view-learning')?.style.display !== 'none';
+        if (inPlayer && playerBtn) playerBtn.style.display = 'inline-flex';
+        if (inLearning && learningBtn) learningBtn.style.display = 'inline-flex';
+      };
+      window.AudioEngine.onAttemptStart = () => {
+        if (playerBtn) playerBtn.style.display = 'none';
+        if (learningBtn) learningBtn.style.display = 'none';
+      };
+    }
+
+    playerBtn?.addEventListener('click', () => {
+      playerBtn.style.display = 'none';
+      window.AudioEngine?.retry();
+    });
+    learningBtn?.addEventListener('click', () => {
+      learningBtn.style.display = 'none';
+      window.AudioEngine?.retry();
+    });
+  },
+
   leavePlayers() {
     this.stopBreakTimer();
     this.stopLearningTicker();
@@ -109,6 +141,10 @@ const ResetApp = {
     this.state.running = false;
     this.state.learningPlaying = false;
     this.state.learningStarted = false;
+    const playerBtn = document.getElementById('player-audio-recover');
+    const learningBtn = document.getElementById('learning-audio-recover');
+    if (playerBtn) playerBtn.style.display = 'none';
+    if (learningBtn) learningBtn.style.display = 'none';
   },
 
   // ---------- Sidebar ----------
@@ -1409,10 +1445,13 @@ const ResetApp = {
       this.saveSettings();
     });
     // Permission prompts need a user gesture; also wake the speech engine so
-    // the first word of any break is never clipped.
+    // the first word of any break is never clipped, and unlock the shared
+    // recorded-audio element so mobile browsers grant it sound playback
+    // before the user ever presses Start/Play — see AudioEngine.unlock().
     document.addEventListener('pointerdown', () => {
       if (document.getElementById('reminder-toggle')?.checked) this.requestNotifyPermission();
       window.VoiceSystem?.warmUp();
+      window.AudioEngine?.unlock();
     }, { once: true });
   },
 

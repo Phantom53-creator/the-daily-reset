@@ -150,13 +150,14 @@ const VoiceSystem = {
     } catch (e) { /* ignore */ }
   },
 
-  speak(text, onEnd, rate) {
+  speak(text, onEnd, rate, onStart) {
     if (!this.enabled || !text) {
       if (onEnd) onEnd();
       return;
     }
 
     // Cancel any current speech
+    const wasIdle = !speechSynthesis.speaking && !speechSynthesis.pending;
     this.stop();
 
     const utterance = new SpeechSynthesisUtterance(text);
@@ -165,7 +166,7 @@ const VoiceSystem = {
     utterance.pitch = this.pitch;
     utterance.volume = this.volume;
 
-    utterance.onstart = () => { this.isSpeaking = true; };
+    utterance.onstart = () => { this.isSpeaking = true; if (onStart) onStart(); };
     utterance.onend = () => {
       this.isSpeaking = false;
       this.currentUtterance = null;
@@ -180,13 +181,24 @@ const VoiceSystem = {
     this.currentUtterance = utterance;
     this.onEndCallback = onEnd;
 
-    // Chrome/Safari drop the first word(s) when speak() is called in the same
-    // tick as cancel(). A short delay lets the engine flush so narration always
-    // starts cleanly from the very first word.
-    this._speakTimer = setTimeout(() => {
-      this._speakTimer = null;
+    if (wasIdle) {
+      // Nothing was speaking, so there's no same-tick cancel() to flush —
+      // speak immediately. iOS Safari only honors speechSynthesis.speak() as
+      // part of a genuine user gesture; even a 0ms setTimeout here pushes the
+      // call into a new macrotask and iOS silently drops it. This is the path
+      // every FIRST narration in a sequence takes, so it must stay gesture-tied.
       speechSynthesis.speak(utterance);
-    }, 140);
+    } else {
+      // Chrome/Safari drop the first word(s) when speak() is called in the same
+      // tick as cancel() on a synth that was actively speaking. A short delay
+      // lets the engine flush so narration always starts cleanly from the very
+      // first word. By this point gesture context is typically already gone
+      // (we're replacing mid-sequence speech), so the delay costs nothing extra.
+      this._speakTimer = setTimeout(() => {
+        this._speakTimer = null;
+        speechSynthesis.speak(utterance);
+      }, 140);
+    }
   },
 
   stop() {
