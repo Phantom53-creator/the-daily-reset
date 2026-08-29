@@ -12,3 +12,5 @@ voice-tests/
 
 # Local session-tooling metadata — not part of the app
 .ijfw/
+.vercel
+.env*

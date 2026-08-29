@@ -1,0 +1,70 @@
+# The Daily Reset — Apache config for cPanel hosting (replaces what Vercel
+# was doing automatically: force HTTPS, canonical domain, compression,
+# correct audio MIME/CORS, and NOT over-caching files whose names don't
+# change when their content does).
+#
+# Written 2026-08 as part of the move off Vercel. If something on the live
+# site misbehaves after upload, check here first — this is the one file that
+# didn't exist on Vercel and could plausibly be the cause.
+
+# ---------- HTTPS + canonical domain ----------
+# Force https, and make the bare domain canonical (redirect www -> apex).
+# If you'd rather www be canonical instead, swap the condition/target below.
+RewriteEngine On
+
+RewriteCond %{HTTPS} off
+RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+RewriteCond %{HTTP_HOST} ^www\.dailyresetlabs\.com$ [NC]
+RewriteRule ^ https://dailyresetlabs.com%{REQUEST_URI} [L,R=301]
+
+# ---------- Correct MIME types (defensive — most hosts already have these) ----------
+<IfModule mod_mime.c>
+  AddType audio/mpeg .mp3
+  AddType text/javascript .js
+  AddType application/json .json
+</IfModule>
+
+# ---------- CORS on audio files (parity with the current Vercel behavior) ----------
+<IfModule mod_headers.c>
+  <FilesMatch "\.mp3$">
+    Header set Access-Control-Allow-Origin "*"
+  </FilesMatch>
+
+  # Matches Vercel's current HSTS header
+  Header always set Strict-Transport-Security "max-age=63072000; includeSubDomains; preload"
+</IfModule>
+
+# ---------- Compression for text assets (mp3s are already compressed, skip them) ----------
+<IfModule mod_deflate.c>
+  AddOutputFilterByType DEFLATE text/html text/css application/javascript text/javascript application/json
+</IfModule>
+
+# ---------- Caching ----------
+# Deliberately NOT setting a long max-age here. Audio/JS/quote files keep the
+# same filename even when regenerated (e.g. quote-daily-211-female.mp3 can be
+# re-recorded in place), so aggressive caching would risk serving stale
+# content after a fix ships. This mirrors Vercel's own conservative
+# `must-revalidate` behavior — rely on Apache's default ETag/Last-Modified
+# conditional requests (a 304 on unchanged files) rather than a fixed TTL.
+<IfModule mod_headers.c>
+  Header set Cache-Control "public, max-age=0, must-revalidate"
+</IfModule>
+
+# ---------- Lock down dev/build tooling that doesn't need to be public ----------
+# Vercel was serving these openly (they were just files in the deployed
+# folder); a real web server lets us actually restrict them. None of this
+# contains secrets (API keys live in gitignored .env files that were never
+# uploaded), but there's no reason tts-generate.js, the setup scripts, or the
+# internal review/handoff docs need to be fetchable by anyone who guesses the
+# URL.
+#
+# audio-manifest.js is deliberately NOT in this list — app.html loads it live
+# (<script src="audio-manifest.js">) to know which clips have real recordings;
+# blocking it would silently fall every single clip back to browser TTS.
+<FilesMatch "\.(md|sh)$">
+  Require all denied
+</FilesMatch>
+<FilesMatch "^(tts-generate\.js|script-review\.html|voice-compare\.html|design-concept-a\.html|design-concept-b\.html)$">
+  Require all denied
+</FilesMatch>
