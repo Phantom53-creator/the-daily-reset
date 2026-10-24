@@ -1,3 +1,7 @@
+> ⚠️ **SUPERSEDED.** The live app uses Speechify AI voices (Imogen/Edmund/Marian/Richard); no human recording has been made. The decision below was never carried out. Revisit only if Shane decides to commission human voices. See `NEW_SESSION_START_HERE.md` §7.
+
+---
+
 # Reset Recording Pack — Human Voice Production
 
 ## Production decision

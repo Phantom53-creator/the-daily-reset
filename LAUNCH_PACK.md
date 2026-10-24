@@ -1,3 +1,7 @@
+> ⚠️ **PARTLY OUT OF DATE.** The outreach templates mention a 5-day trial and $8/month or $79/year pricing. Today access is free and payments are not live. Reword before sending anything. The only tracking planned for outreach is the simple spreadsheet in the closing checklist — there is no CRM. Do not launch or send outreach until Shane says so. See `NEW_SESSION_START_HERE.md`.
+
+---
+
 # The Daily Reset — Launch Pack
 
 ## 1. Prospect List Criteria

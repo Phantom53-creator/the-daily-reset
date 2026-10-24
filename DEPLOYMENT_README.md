@@ -1,92 +1,83 @@
-# The Daily Reset — Deployment README
+# The Daily Reset — Deployment
 
-## Your deploy (takes 2 minutes — Vercel, free)
+Last verified: 2026-10-24.
 
-Since you already have a Vercel account, this is the fastest path.
+This folder (`build/`) is the whole website **and** its git repository. This file lives in a public repo, so it deliberately
+contains no server paths or account details; those are in the private project docs (see "More detail" at the end).
 
-### Step 1: Deploy via Vercel dashboard
+## How the site is hosted
 
-1. Open **https://vercel.com/new** in your browser (log in if needed)
-2. Scroll down to **"Import a project"** or look for the drag-and-drop area
-3. Drag the entire `build` folder into the window:
+- **Production:** https://dailyresetlabs.com, served from Shane's own web hosting (cPanel) — static files only, no build step.
+- **The live files are a git clone of this repo.** Publishing a change = push to GitHub, then pull on the host.
+- **Source of truth:** GitHub `Phantom53-creator/the-daily-reset`, branch `main`.
+- **Backend services** (not hosted here): Supabase for sign-ups, reviews and premium sign-in. See `NEW_SESSION_START_HERE.md` (project root).
+
+## Publishing an update
+
+1. **Edit and test** files in `build/`. Open `app.html` in a browser to check it.
+2. **Commit and push** — from this folder:
    ```
-   /Users/shanecarrol/Sample Checkers Dropbox/Shane Carrol/Wayland/Projects/Executive Burnout/build
+   git add -A
+   git commit -m "Describe the change"
+   git push origin main
    ```
-4. Click **Deploy**
-5. You get a live URL in seconds (e.g. `https://the-daily-reset-abc123.vercel.app`)
+3. **Pull it onto the live site (required):** sign in to cPanel → *Git™ Version Control* → the `dailyresetlabs` repository →
+   *Manage* → *Pull or Deploy* → **Update from Remote**.
+   A push by itself does **not** change the live site. Leave "Deploy HEAD Commit" alone; there is intentionally no `.cpanel.yml`.
+4. **Check the live site in a real browser** (not only curl): load https://dailyresetlabs.com/app.html, play a break, play a Lunch Break
+   Learning episode, and confirm there are no console errors. The host has a bot-check that can return a "One moment, please…" page
+   with HTTP 200 to scripted clients, so a 200 from curl proves nothing — compare the size/content-type, and don't fire rapid bursts of requests.
 
-**That's it. The site is live.**
+Never edit files directly on the host: the next "Update from Remote" would conflict with them.
 
-### Alternative: Vercel CLI (if you prefer terminal)
+## Rolling back
 
-If you have Node installed on your Mac:
-1. Open Terminal
-2. `npm i -g vercel`
-3. `cd "/Users/shanecarrol/Sample Checkers Dropbox/Shane Carrol/Wayland/Projects/Executive Burnout/build"`
-4. `vercel` (follow the prompts — it will ask you to log in via browser)
-5. `vercel --prod` (to deploy to production)
+Revert the commit locally (`git revert <commit>`), push, then **Update from Remote** again.
 
-### Re-deploying after changes
+## Audio changes
 
-Any time you edit a file (e.g. pasting Stripe links), just drag the `build` folder to Vercel again, or run `vercel --prod` from the build directory. The URL stays the same.
+Audio files keep the same filename when regenerated, so after adding or replacing MP3s:
+```
+./update-audio-manifest.sh     # or let tts-generate.js regenerate audio-manifest.js
+git add -A && git commit -m "Update audio" && git push origin main
+```
+then **Update from Remote** on the host. The server is configured *not* to cache aggressively, so a re-recorded clip is picked up
+straight away. `audio-manifest.js` must stay publicly readable — the app loads it to know which clips exist.
 
----
+## What the server config does (`.htaccess`)
 
-## After deploy: Stripe Payment Links (takes 5 minutes)
+Forces https, redirects `www` to the bare domain, serves MP3s with the right type and CORS headers (range requests work, which iPhones
+need), compresses text files, and blocks the git folder, `.md`/`.sh` files and developer tools (`tts-generate.js`, `script-review.html`,
+`voice-compare.html`, `design-concept-*.html`). Edit it only with care — a mistake can take the whole site down. It is only active on the
+host, not when opening files locally.
 
-This activates the payment buttons so you can take money.
+## Fallback copy (not production)
 
-1. Log in to **https://dashboard.stripe.com** (create account if needed)
-2. Go to **Payment Links** → **Create payment link**
-3. Create two products:
-   - **Product 1:** "The Daily Reset — Monthly" / $8.00 USD / recurring monthly
-   - **Product 2:** "The Daily Reset — Annual" / $79.00 USD / recurring yearly
-4. After each, copy the Payment Link URL (looks like `https://buy.stripe.com/abc123...`)
-5. Open `stripe.js` in TextEdit (or any text editor)
-6. Find these two lines:
-   ```
-   monthlyPaymentLink: 'https://buy.stripe.com/REPLACE_MONTHLY_LINK',
-   annualPaymentLink: 'https://buy.stripe.com/REPLACE_ANNUAL_LINK',
-   ```
-7. Paste your links, and change `active: false` to `active: true`
-8. Save and re-deploy (drag the folder to Vercel again)
+A copy of this repo is also deployed automatically to a free Vercel address every time `main` is pushed. It is a spare in case the main host
+has a problem, not a second production site: don't give that address to customers, and note that anyone who signed up there appears as new on
+the real domain (the app stores progress per web address).
 
-**The payment buttons are now live.** When someone clicks "Upgrade — $8/month," they go to Stripe's secure checkout. Stripe collects the payment and deposits to your bank account on Stripe's payout schedule (typically 2-7 days).
+## Payments
 
----
+Stripe is **not live** (test mode only) and no payment link is wired into the app. Do not enable payments until Shane says so.
 
-## After Stripe: Custom domain (optional, takes 10 minutes)
-
-1. Buy a domain (e.g. `thedailyreset.com`) from Namecheap or Cloudflare
-2. In Vercel: Project settings → Domains → Add your domain
-3. Follow DNS instructions (Vercel gives you the exact records to add to your domain registrar)
-4. SSL is automatic and free on Vercel
-
----
-
-## Vercel free plan — what you get
-
-- **100 GB bandwidth/month** (more than enough for a static site)
-- **Unlimited static deployments**
-- **Automatic HTTPS/SSL**
-- **Custom domain support**
-- **Preview deployments** (every upload gets a unique preview URL)
-- **Zero cost** for a static site like this
-
-No credit card required on the Hobby plan. No surprise charges. The site will never cost you money to host on Vercel's free tier.
-
----
-
-## File inventory
+## File inventory (main files)
 
 | File | Purpose |
 |---|---|
-| `index.html` | Landing page + app shell |
-| `styles.css` | All styling |
-| `app.js` | App logic — breaks, learning, topic picker, shuffle |
-| `breaks.js` | Break definitions (eyes, shoulders, breathe, stand, posture) |
-| `quotes.js` | Morning anchor quote library |
-| `learning.js` | Lunch Break Learning episodes (transcripts + metadata) |
-| `stripe.js` | Trial logic + Stripe Payment Link integration |
+| `index.html`, `styles.css` | Marketing landing page |
+| `app.html`, `app.css`, `app.js` | The app (signup, dashboard, players, settings) |
+| `access.js` | Free access, reviewer codes, Supabase sign-up/review capture |
+| `premium.js` | Premium email-code sign-in (premium audio not live yet) |
+| `breaks.js`, `learning.js`, `quotes.js`, `words.js` | Content: breaks, episodes, quotes, Today's Word |
+| `audio.js`, `audio-manifest.js`, `voice.js` | MP3-first audio engine, clip list, browser-voice fallback |
+| `calendar.js` | Downloadable calendar reminders (.ics) |
+| `audio/` | All narration MP3s (Speechify voices) |
+| `tts-generate.js` | Voice generator CLI (its header is the how-to); `setup-*-key.sh` store API keys in gitignored `.env` files |
+| `.htaccess` | Server rules (above) |
+| `REVIEWER_ACCESS.md`, `PRERECORDED_AUDIO_GUIDE.md` | Reviewer codes; audio naming |
 
-All files are static. No server, no database, no build step. Just upload and go.
+## More detail
+
+Private project docs (outside this repo, on Shane's Mac): `NEW_SESSION_START_HERE.md` (full handoff, file locations, services, open work)
+and `CPANEL_MIGRATION.md` (hosting move record, shared-account rules, host gotchas).

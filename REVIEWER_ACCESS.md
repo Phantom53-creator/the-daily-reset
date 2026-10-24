@@ -17,7 +17,7 @@ Codes are case-insensitive. To add or revoke a code, edit the `ACCESS_CODES` lis
 
 ## Three ways to activate
 
-1. **One-click link (easiest to share):** `https://the-daily-reset-woad.vercel.app/app.html?code=RESET-REVIEW-01`
+1. **One-click link (easiest to share):** `https://dailyresetlabs.com/app.html?code=RESET-REVIEW-01`
    The code activates automatically and is removed from the address bar.
 2. **In the app welcome screen:** open `app.html`, click "I have an access code".
 3. **In Settings:** if already signed up, Settings → Account → "Have an access code?"

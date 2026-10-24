@@ -93,7 +93,7 @@ const CalendarReminders = {
     // Use the live app URL if we're hosted; fall back to the current origin.
     const host = window.location.hostname;
     if (host === 'localhost' || host === '127.0.0.1' || host === '') {
-      return 'https://the-daily-reset-woad.vercel.app/app.html';
+      return 'https://dailyresetlabs.com/app.html';
     }
     return window.location.origin + '/app.html';
   },

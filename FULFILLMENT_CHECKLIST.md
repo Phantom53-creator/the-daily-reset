@@ -1,3 +1,7 @@
+> ⚠️ **OUT OF DATE.** Describes the early 5-day-trial + Stripe plan. Today everyone gets free access and no payment path is live (Stripe is in test mode). Sign-ups are recorded in Supabase, not emailed. See `NEW_SESSION_START_HERE.md` §3–4.
+
+---
+
 # The Daily Reset — Fulfillment Checklist
 
 ## What happens when someone signs up (free trial)
