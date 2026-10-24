@@ -22,9 +22,16 @@ RewriteEngine On
 # Also covers .gitignore etc. Leaves .well-known alone (SSL validation).
 RewriteRule (^|/)\.git - [F,L]
 
+# The two redirects below skip /.well-known/acme-challenge/ and
+# /.well-known/pki-validation/: that is where the host's automatic SSL renewal
+# (AutoSSL / Let's Encrypt) proves it controls the domain, over plain http. If
+# those requests were redirected the renewal could fail and the certificate
+# would eventually expire.
+RewriteCond %{REQUEST_URI} !^/\.well-known/(acme-challenge|pki-validation)/ [NC]
 RewriteCond %{HTTPS} off
 RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
 
+RewriteCond %{REQUEST_URI} !^/\.well-known/(acme-challenge|pki-validation)/ [NC]
 RewriteCond %{HTTP_HOST} ^www\.dailyresetlabs\.com$ [NC]
 RewriteRule ^ https://dailyresetlabs.com%{REQUEST_URI} [L,R=301]
 
