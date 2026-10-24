@@ -7,10 +7,20 @@
 # site misbehaves after upload, check here first — this is the one file that
 # didn't exist on Vercel and could plausibly be the cause.
 
+# NOTE: this file lives inside the dailyresetlabs.com folder of a SHARED cPanel
+# account (the samplecheckers.au business site is the account's main domain).
+# .htaccess only applies to its own folder and below, so nothing in here can
+# affect samplecheckers.au. Never copy this file anywhere else on the account.
+
 # ---------- HTTPS + canonical domain ----------
 # Force https, and make the bare domain canonical (redirect www -> apex).
 # If you'd rather www be canonical instead, swap the condition/target below.
 RewriteEngine On
+
+# Never serve the git repository itself (the site is deployed by cloning the
+# repo straight into this folder, so a .git directory sits next to the site).
+# Also covers .gitignore etc. Leaves .well-known alone (SSL validation).
+RewriteRule (^|/)\.git - [F,L]
 
 RewriteCond %{HTTPS} off
 RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
@@ -31,8 +41,12 @@ RewriteRule ^ https://dailyresetlabs.com%{REQUEST_URI} [L,R=301]
     Header set Access-Control-Allow-Origin "*"
   </FilesMatch>
 
-  # Matches Vercel's current HSTS header
-  Header always set Strict-Transport-Security "max-age=63072000; includeSubDomains; preload"
+  # HSTS tells browsers "only ever use https for this domain". Deliberately a
+  # short ramp-up (1 week, no includeSubDomains/preload) for a brand-new
+  # domain: if the SSL certificate ever lapsed, a long HSTS would stop people
+  # clicking through the warning. Once it's proven stable, raise max-age to
+  # 31536000 (1 year).
+  Header always set Strict-Transport-Security "max-age=604800"
 </IfModule>
 
 # ---------- Compression for text assets (mp3s are already compressed, skip them) ----------
@@ -63,6 +77,10 @@ RewriteRule ^ https://dailyresetlabs.com%{REQUEST_URI} [L,R=301]
 # (<script src="audio-manifest.js">) to know which clips have real recordings;
 # blocking it would silently fall every single clip back to browser TTS.
 <FilesMatch "\.(md|sh)$">
+  Require all denied
+</FilesMatch>
+# Most hosts already hide .htaccess itself; this makes sure of it either way.
+<FilesMatch "^\.ht">
   Require all denied
 </FilesMatch>
 <FilesMatch "^(tts-generate\.js|script-review\.html|voice-compare\.html|design-concept-a\.html|design-concept-b\.html)$">
