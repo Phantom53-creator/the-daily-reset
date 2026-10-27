@@ -14,11 +14,20 @@ const SUPABASE_CONFIG = {
   publishableKey: 'sb_publishable_D75EX5UMfSJ4OHsXHHxdSg_mjtaUxQy'
 };
 
-// Fire-and-forget — never blocks or breaks signup if this fails (offline,
-// ad-blocker, Supabase hiccup, etc.). The user always gets into the app.
-function captureLead(name, email) {
-  const source = window.location.pathname.endsWith('app.html') ? 'app' : 'landing';
-  fetch(`${SUPABASE_CONFIG.url}/rest/v1/leads`, {
+// --- Saving to Supabase (insert-only) ---
+// A save can fail: offline, ad-blocker, project paused, key or policy rejected. The
+// visitor is never blocked (they always get into the app), but a failed save is no
+// longer lost or silent: it is logged to the console, parked in localStorage and
+// retried on every later page load and whenever the phone comes back online. After
+// MAX_SAVE_ATTEMPTS it stops retrying but is kept. On a reviewer's device (Shane's)
+// a red banner shows anything that has not reached Supabase.
+// Limit: this can only be seen on the device that failed — a customer's phone cannot
+// tell Shane. Outages are caught separately by .github/workflows/supabase-keepalive.yml.
+const PENDING_SAVES_KEY = 'reset_pending_saves';
+const MAX_SAVE_ATTEMPTS = 8;
+
+function insertRow(table, row) {
+  return fetch(`${SUPABASE_CONFIG.url}/rest/v1/${table}`, {
     method: 'POST',
     headers: {
       'apikey': SUPABASE_CONFIG.publishableKey,
@@ -26,8 +35,76 @@ function captureLead(name, email) {
       'Content-Type': 'application/json',
       'Prefer': 'return=minimal'
     },
-    body: JSON.stringify({ name, email, source })
-  }).catch(() => { /* best-effort only */ });
+    body: JSON.stringify(row)
+  }).then(res => {
+    // fetch() only rejects on network errors; a 401/403/404/5xx still "succeeds".
+    if (!res.ok) throw new Error('Supabase answered ' + res.status);
+  });
+}
+
+function getPendingSaves() {
+  try { return JSON.parse(localStorage.getItem(PENDING_SAVES_KEY) || '[]'); } catch (e) { return []; }
+}
+
+function setPendingSaves(list) {
+  try { localStorage.setItem(PENDING_SAVES_KEY, JSON.stringify(list)); } catch (e) { /* storage blocked */ }
+}
+
+// Never rejects, so callers can ignore the result.
+function saveRow(table, row) {
+  return insertRow(table, row).catch(err => {
+    console.warn(`[Daily Reset] Could not save to "${table}" (${err.message}); kept to retry.`);
+    const list = getPendingSaves();
+    list.push({
+      id: Date.now() + '-' + Math.random().toString(36).slice(2, 8),
+      table, row, attempts: 1, lastError: err.message, failedAt: new Date().toISOString()
+    });
+    setPendingSaves(list);
+    if (document.body) showPendingBanner();
+  });
+}
+
+let retryingSaves = false;
+async function retryPendingSaves() {
+  if (retryingSaves) return;
+  retryingSaves = true;
+  try {
+    const due = getPendingSaves().filter(p => p.attempts < MAX_SAVE_ATTEMPTS);
+    for (const item of due) {
+      let error = null;
+      try { await insertRow(item.table, item.row); } catch (e) { error = e.message; }
+      // Re-read each time so saves queued meanwhile are not overwritten.
+      const list = getPendingSaves();
+      const i = list.findIndex(p => p.id === item.id);
+      if (i === -1) continue;
+      if (error) { list[i].attempts++; list[i].lastError = error; } else { list.splice(i, 1); }
+      setPendingSaves(list);
+    }
+  } finally {
+    retryingSaves = false;
+  }
+}
+
+function showPendingBanner() {
+  const old = document.getElementById('pending-saves-banner');
+  if (old) old.remove();
+  const stuck = getPendingSaves();
+  if (!stuck.length || !isReviewer()) return;
+  const el = document.createElement('div');
+  el.id = 'pending-saves-banner';
+  el.setAttribute('role', 'status');
+  el.style.cssText = 'position:fixed;left:12px;right:12px;bottom:12px;z-index:9999;padding:10px 14px;' +
+    'border-radius:10px;background:#7a1f1f;color:#fff;font:14px/1.4 system-ui,sans-serif;' +
+    'box-shadow:0 2px 10px rgba(0,0,0,.3);cursor:pointer';
+  el.textContent = `Reviewer notice: ${stuck.length} sign-up/review save(s) on this device have not reached ` +
+    `Supabase (${stuck[stuck.length - 1].lastError}). Retrying on each visit. Tap to dismiss.`;
+  el.addEventListener('click', () => el.remove());
+  document.body.appendChild(el);
+}
+
+function captureLead(name, email) {
+  const source = window.location.pathname.endsWith('app.html') ? 'app' : 'landing';
+  saveRow('leads', { name, email, source });
 }
 
 // In-app review submission — separate insert-only table from `leads`, same
@@ -36,19 +113,10 @@ function captureLead(name, email) {
 // needs update rights on anything. Shane matches reviews to leads by email,
 // and flips `reviewed_by_shane` himself in the Supabase table editor.
 function submitReview({ name, email, rating, reviewText, marketingConsent }) {
-  return fetch(`${SUPABASE_CONFIG.url}/rest/v1/reviews`, {
-    method: 'POST',
-    headers: {
-      'apikey': SUPABASE_CONFIG.publishableKey,
-      'Authorization': `Bearer ${SUPABASE_CONFIG.publishableKey}`,
-      'Content-Type': 'application/json',
-      'Prefer': 'return=minimal'
-    },
-    body: JSON.stringify({
-      name, email, rating,
-      review_text: reviewText || null,
-      marketing_consent: marketingConsent
-    })
+  return saveRow('reviews', {
+    name, email, rating,
+    review_text: reviewText || null,
+    marketing_consent: marketingConsent
   });
 }
 
@@ -152,6 +220,10 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }
   }
+
+  // Re-send any sign-up or review that failed earlier (see "Saving to Supabase").
+  retryPendingSaves().then(showPendingBanner);
+  window.addEventListener('online', () => retryPendingSaves().then(showPendingBanner));
 });
 
 if (typeof window !== 'undefined') {
@@ -166,6 +238,7 @@ if (typeof window !== 'undefined') {
   window.getUserName = getUserName;
   window.getUserFirstName = getUserFirstName;
   window.submitReview = submitReview;
+  window.getPendingSaves = getPendingSaves; // entries that have not reached Supabase yet
   // Exposed so premium.js can reuse the same project config instead of
   // duplicating it — this key is insert-only/public by design (see comment
   // above), so exporting it changes nothing about what it can do.
